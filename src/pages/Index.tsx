@@ -5,6 +5,7 @@ import ProductSection from "@/components/ProductSection";
 import PromoSection from "@/components/PromoSection";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import BottomNav from "@/components/BottomNav";
 
 // Import product images
 import productPens from "@/assets/product-pens.png";
@@ -19,7 +20,6 @@ const bestSellers = [
     image: productPens,
     originalPrice: 70,
     discountedPrice: 60,
-    packSize: "9 Pack",
     discount: 14,
   },
   {
@@ -28,7 +28,6 @@ const bestSellers = [
     image: productNotebooks,
     originalPrice: 270,
     discountedPrice: 240,
-    packSize: "3 Pack",
     discount: 11,
   },
   {
@@ -37,7 +36,6 @@ const bestSellers = [
     image: productSchool,
     originalPrice: 250,
     discountedPrice: 220,
-    packSize: "6 Pack",
     discount: 12,
   },
   {
@@ -46,7 +44,6 @@ const bestSellers = [
     image: productArt,
     originalPrice: 350,
     discountedPrice: 300,
-    packSize: "3 Pack",
     discount: 14,
   },
 ];
@@ -58,7 +55,6 @@ const writingEssentials = [
     image: productPens,
     originalPrice: 483,
     discountedPrice: 403,
-    packSize: "Single",
     discount: 17,
   },
   {
@@ -67,7 +63,6 @@ const writingEssentials = [
     image: productPens,
     originalPrice: 165,
     discountedPrice: 138,
-    packSize: "Single",
     discount: 16,
   },
   {
@@ -76,7 +71,6 @@ const writingEssentials = [
     image: productPens,
     originalPrice: 232,
     discountedPrice: 194,
-    packSize: "Single",
     discount: 16,
   },
   {
@@ -85,7 +79,6 @@ const writingEssentials = [
     image: productSchool,
     originalPrice: 168,
     discountedPrice: 140,
-    packSize: "Single",
     discount: 17,
   },
 ];
@@ -97,7 +90,6 @@ const notebooks = [
     image: productNotebooks,
     originalPrice: 436,
     discountedPrice: 364,
-    packSize: "Single",
     discount: 17,
   },
   {
@@ -106,7 +98,6 @@ const notebooks = [
     image: productNotebooks,
     originalPrice: 577,
     discountedPrice: 481,
-    packSize: "Single",
     discount: 17,
   },
   {
@@ -115,7 +106,6 @@ const notebooks = [
     image: productNotebooks,
     originalPrice: 393,
     discountedPrice: 328,
-    packSize: "Single",
     discount: 17,
   },
   {
@@ -124,37 +114,25 @@ const notebooks = [
     image: productNotebooks,
     originalPrice: 472,
     discountedPrice: 394,
-    packSize: "Single",
     discount: 17,
   },
 ];
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Header cartCount={3} wishlistCount={2} />
+    <div className="min-h-screen bg-background pb-16 md:pb-0">
+      <Header cartCount={3} />
       <main>
         <HeroSection />
         <CategorySection />
-        <ProductSection
-          title="Best Selling Items"
-          products={bestSellers}
-          isBestSeller
-        />
+        <ProductSection title="Best Sellers" products={bestSellers} />
         <PromoSection />
-        <ProductSection
-          title="Writing Essentials"
-          subtitle="8 items"
-          products={writingEssentials}
-        />
-        <ProductSection
-          title="Paper & Notebooks"
-          subtitle="8 items"
-          products={notebooks}
-        />
+        <ProductSection title="Writing Essentials" products={writingEssentials} />
+        <ProductSection title="Notebooks" products={notebooks} />
       </main>
       <Footer />
       <ScrollToTop />
+      <BottomNav cartCount={3} />
     </div>
   );
 };
