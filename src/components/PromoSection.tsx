@@ -1,53 +1,74 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Gift, Truck, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface PromoSectionProps {
-  videoUrl?: string;
-}
-
-const PromoSection = ({ videoUrl }: PromoSectionProps) => {
+const PromoSection = () => {
   return (
-    <section className="relative py-16 md:py-24 bg-foreground overflow-hidden">
-      {/* Video/Gradient Background */}
-      {videoUrl ? (
-        <>
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-          >
-            <source src={videoUrl} type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-black/60" />
-        </>
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80" />
-      )}
-      
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 text-center">
-        <span className="inline-block text-sm font-bold text-white/90 uppercase tracking-wider mb-4">
-          Limited Time Offer
-        </span>
-        
-        <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-          Get 25% OFF
-        </h2>
-        
-        <p className="text-lg text-white/80 mb-8 max-w-md mx-auto">
-          Use code <span className="font-bold text-white">WELCOME25</span> at checkout
-        </p>
-        
-        <Button 
-          variant="outline" 
-          size="lg" 
-          className="bg-white text-foreground border-white hover:bg-white/90"
-        >
-          Shop Now
-          <ArrowRight className="w-5 h-5" />
-        </Button>
+    <section className="py-16 bg-hero-gradient">
+      <div className="container mx-auto px-4">
+        {/* Promo Banner */}
+        <div className="relative rounded-3xl bg-foreground overflow-hidden mb-16">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-peach-accent rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
+          </div>
+          
+          <div className="relative p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-semibold mb-4">
+                <Gift className="w-4 h-4" />
+                Limited Time Offer
+              </span>
+              <h3 className="text-2xl md:text-3xl font-bold text-background mb-2">
+                Get 25% OFF on your first order!
+              </h3>
+              <p className="text-background/70">
+                Use code <span className="font-bold text-primary">WELCOME25</span> at checkout
+              </p>
+            </div>
+            <Button variant="primary" size="lg" className="group">
+              Shop Now
+              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              icon: Truck,
+              title: "Free Shipping",
+              description: "On orders above ₹499",
+              color: "mint",
+            },
+            {
+              icon: Shield,
+              title: "Secure Payments",
+              description: "100% secure transactions",
+              color: "sky",
+            },
+            {
+              icon: Gift,
+              title: "Gift Wrapping",
+              description: "Available on all orders",
+              color: "peach",
+            },
+          ].map((feature, index) => (
+            <div
+              key={feature.title}
+              className="flex items-center gap-4 p-6 rounded-2xl bg-card border border-border shadow-sm hover:shadow-md transition-shadow animate-fade-in-up"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className={`w-14 h-14 rounded-2xl bg-${feature.color} flex items-center justify-center`}>
+                <feature.icon className={`w-7 h-7 text-${feature.color}-accent`} />
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground">{feature.title}</h4>
+                <p className="text-sm text-muted-foreground">{feature.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

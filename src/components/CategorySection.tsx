@@ -1,37 +1,38 @@
-import { ChevronRight } from "lucide-react";
+import CategoryCard from "./CategoryCard";
 
 const categories = [
-  { icon: "✍️", name: "Writing" },
-  { icon: "📓", name: "Notebooks" },
-  { icon: "🎨", name: "Art" },
-  { icon: "💼", name: "Office" },
-  { icon: "🎒", name: "School" },
-  { icon: "📦", name: "Essentials" },
+  { icon: "✍️", name: "Writing", itemCount: 24 },
+  { icon: "📓", name: "Notebooks", itemCount: 18 },
+  { icon: "🎨", name: "Art", itemCount: 32 },
+  { icon: "💼", name: "Office", itemCount: 15 },
+  { icon: "🎒", name: "School", itemCount: 28 },
+  { icon: "📦", name: "Other Essentials", itemCount: 12 },
 ];
 
 const CategorySection = () => {
   return (
-    <section className="py-12 md:py-16 bg-background">
+    <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8">
-          Categories
-        </h2>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 animate-fade-in-up">
+            Shop by Category
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            Browse our curated collection of premium stationery organized by category
+          </p>
+        </div>
 
-        {/* Mobile: Horizontal scroll / Desktop: Grid */}
-        <div className="flex md:grid md:grid-cols-6 gap-4 overflow-x-auto pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+        {/* Category Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
           {categories.map((category, index) => (
-            <button
+            <CategoryCard
               key={category.name}
-              className="flex-shrink-0 flex flex-col items-center gap-3 p-4 md:p-6 bg-secondary hover:bg-secondary/80 transition-colors group min-w-[100px]"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <span className="text-3xl md:text-4xl">{category.icon}</span>
-              <span className="text-sm font-medium text-foreground whitespace-nowrap">
-                {category.name}
-              </span>
-              <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </button>
+              icon={category.icon}
+              name={category.name}
+              itemCount={category.itemCount}
+              delay={index * 100}
+            />
           ))}
         </div>
       </div>
