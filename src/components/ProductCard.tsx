@@ -1,8 +1,12 @@
-import { useState } from "react";
-import { Heart, Plus, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/context/CartContext";
+import { Product } from "@/data/products";
+import { Link } from "react-router-dom";
+import ProductModal from "./ProductModal";
 
 interface ProductCardProps {
   id: string;
@@ -13,25 +17,60 @@ interface ProductCardProps {
   packSize?: string;
   discount?: number;
   delay?: number;
+  // Fallback for props that might satisfy Product
+  category?: string;
+  brand?: string;
+  rating?: number;
+  popularity?: number;
 }
 
-const ProductCard = ({
-  id,
-  name,
-  image,
-  originalPrice,
-  discountedPrice,
-  packSize,
-  discount,
-  delay = 0,
-}: ProductCardProps) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
-  const { toast } = useToast();
+const ProductCard = (props: ProductCardProps) => {
+  const {
+    id,
+    name,
+    image,
+    originalPrice,
+    discountedPrice,
+    packSize,
+    discount,
+    delay = 0,
+  } = props;
 
-  const handleAddToCart = () => {
+  const [isAdding, setIsAdding] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [shouldPulse, setShouldPulse] = useState(true);
+  const { toast } = useToast();
+  const { addToCart } = useCart();
+
+  useEffect(() => {
+    // Disable pulse after initial animation
+    const timer = setTimeout(() => setShouldPulse(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation when clicking Add to Cart
+    e.stopPropagation();
+
     setIsAdding(true);
+
+    // Construct product object for context
+    const productToAdd: Product = {
+      id,
+      name,
+      image,
+      originalPrice,
+      discountedPrice,
+      packSize,
+      discount,
+      category: (props.category as any) || "Other", // Safe cast or default
+      brand: props.brand || "Generic",
+      rating: props.rating || 0,
+      popularity: props.popularity || 0,
+    };
+
+    addToCart(productToAdd);
+
     setTimeout(() => {
       setIsAdding(false);
       toast({
@@ -41,114 +80,108 @@ const ProductCard = ({
     }, 300);
   };
 
-  const handleWishlist = () => {
-    setIsWishlisted(!isWishlisted);
-    toast({
-      title: isWishlisted ? "Removed from wishlist" : "Added to wishlist!",
-      description: isWishlisted
-        ? `${name} has been removed from your wishlist.`
-        : `${name} has been saved to your wishlist.`,
-    });
-  };
-
   return (
-    <div
-      className={cn(
-        "group relative bg-card rounded-2xl border border-border overflow-hidden",
-        "transition-all duration-300 hover:shadow-xl hover:shadow-primary/10",
-        "hover:-translate-y-2 animate-fade-in-up"
-      )}
-      style={{ animationDelay: `${delay}ms` }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Discount Badge */}
-      {discount && (
-        <div className="absolute top-3 left-3 z-10">
-          <span className="discount-badge shadow-md">
-            {discount}% OFF
-          </span>
-        </div>
-      )}
-
-      {/* Wishlist Button */}
-      <button
-        onClick={handleWishlist}
+    <>
+      <div
         className={cn(
-          "absolute top-3 right-3 z-10 w-9 h-9 rounded-full flex items-center justify-center",
-          "transition-all duration-300 shadow-md",
-          isWishlisted
-            ? "bg-primary text-primary-foreground"
-            : "bg-card/80 backdrop-blur-sm text-muted-foreground hover:bg-primary hover:text-primary-foreground"
+          "group relative block rounded-3xl overflow-hidden cursor-pointer",
+          "transition-all duration-700 ease-in-out",
+          "bg-white border border-gray-100",
+          "dark:bg-[#0f172a] dark:border-gray-800",
+          "hover:scale-[1.02] hover:shadow-xl",
+          "animate-fade-in-up",
+          shouldPulse && "animate-pulse ring-2 ring-primary/20"
         )}
+        style={{ animationDelay: `${delay}ms` }}
+        onClick={() => setOpen(true)}
       >
-        <Heart className={cn("w-4 h-4", isWishlisted && "fill-current")} />
-      </button>
-
-      {/* Image Container */}
-      <div className="relative aspect-square p-6 bg-secondary/30">
-        <img
-          src={image}
-          alt={name}
-          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
-          loading="lazy"
-        />
-
-        {/* Quick View Overlay */}
+        {/* Image Container */}
         <div
           className={cn(
-            "absolute inset-0 bg-foreground/5 backdrop-blur-[2px] flex items-center justify-center",
-            "opacity-0 transition-opacity duration-300",
-            isHovered && "opacity-100"
+            "relative aspect-square p-8 transition-colors duration-700 ease-in-out",
+            "bg-white",
+            "dark:bg-[#f3f4f6]"
           )}
         >
-          <Button variant="glass" size="sm" className="gap-2">
-            <Eye className="w-4 h-4" />
-            Quick View
-          </Button>
+          <img
+            src={image}
+            alt={name}
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
+          />
+        </div>
+
+        {/* Content Area */}
+        <div className={cn(
+          "p-5 transition-colors duration-700 ease-in-out",
+          "bg-white dark:bg-[#0f172a]"
+        )}>
+          {packSize && (
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+              {packSize}
+            </p>
+          )}
+
+          <h3 className={cn(
+            "font-bold text-base mb-3 line-clamp-2 transition-colors duration-700",
+            "text-gray-900 dark:text-white"
+          )}>
+            {name}
+          </h3>
+
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-xs text-gray-400 line-through decoration-1">
+                ₹{originalPrice}
+              </span>
+              <span className={cn(
+                "text-xl font-bold transition-colors duration-700",
+                "text-gray-900 dark:text-white"
+              )}>
+                ₹{discountedPrice}
+              </span>
+            </div>
+
+            <Button
+              variant="default"
+              size="sm"
+              className={cn(
+                "h-8 px-5 rounded-lg border transition-all duration-300",
+                "bg-white border-primary text-primary hover:bg-primary hover:text-white",
+                "dark:bg-transparent dark:border-primary dark:text-primary dark:hover:bg-primary dark:hover:text-white",
+                "font-bold tracking-wide text-xs",
+                isAdding && "scale-95 opacity-80"
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart(e);
+              }}
+            >
+              {isAdding ? "ADDED" : "ADD"}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4">
-        {/* Pack Badge */}
-        {packSize && (
-          <span className="pack-badge mb-2 inline-block">
-            {packSize}
-          </span>
-        )}
-
-        {/* Product Name */}
-        <h3 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-          {name}
-        </h3>
-
-        {/* Price */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-lg font-bold text-foreground">
-            ₹{discountedPrice}
-          </span>
-          {originalPrice !== discountedPrice && (
-            <span className="text-sm text-muted-foreground line-through">
-              ₹{originalPrice}
-            </span>
-          )}
-        </div>
-
-        {/* Add to Cart Button */}
-        <Button
-          variant="add"
-          className={cn(
-            "w-full gap-2 transition-all duration-300",
-            isAdding && "scale-95"
-          )}
-          onClick={handleAddToCart}
-        >
-          <Plus className="w-4 h-4" />
-          ADD
-        </Button>
-      </div>
-    </div>
+      <ProductModal
+        product={{
+          id,
+          name,
+          image,
+          originalPrice,
+          discountedPrice,
+          packSize,
+          discount,
+          category: (props.category as any) || "Other",
+          brand: props.brand || "Generic",
+          rating: props.rating || 0,
+          popularity: props.popularity || 0,
+        }}
+        open={open}
+        onOpenChange={setOpen}
+        trigger={null} // Trigger is handled by the parent div click
+      />
+    </>
   );
 };
 

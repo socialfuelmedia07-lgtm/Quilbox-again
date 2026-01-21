@@ -11,18 +11,18 @@ const PromoSection = () => {
             <div className="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
             <div className="absolute bottom-0 left-0 w-80 h-80 bg-peach-accent rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
           </div>
-          
+
           <div className="relative p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-center md:text-left">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-semibold mb-4">
                 <Gift className="w-4 h-4" />
                 Limited Time Offer
               </span>
-              <h3 className="text-2xl md:text-3xl font-bold text-background mb-2">
-                Get 25% OFF on your first order!
+              <h3 className="text-2xl md:text-3xl font-bold text-background mb-4">
+                Your one-stop shop for premium stationery, art supplies, and office essentials. Delivered at blink-speed.
               </h3>
               <p className="text-background/70">
-                Use code <span className="font-bold text-primary">WELCOME25</span> at checkout
+                {/* Removed the code as it wasn't in the reference text, but keeping structure clean */}
               </p>
             </div>
             <Button variant="primary" size="lg" className="group">

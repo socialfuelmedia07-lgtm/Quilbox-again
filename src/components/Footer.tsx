@@ -1,5 +1,6 @@
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BrandLogo from "@/components/BrandLogo";
 
 const Footer = () => {
   return (
@@ -8,14 +9,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-primary-gradient flex items-center justify-center">
-                <span className="text-xl font-bold text-primary-foreground">Q</span>
-              </div>
-              <span className="text-xl font-bold">
-                Quil<span className="text-primary">Box</span>
-              </span>
-            </div>
+            <a href="/" className="flex items-center gap-2 w-fit">
+              <BrandLogo className="[&_span]:text-background" />
+            </a>
             <p className="text-background/70 text-sm leading-relaxed">
               Your one-stop destination for premium stationery. Quality products delivered at blink-speed.
             </p>
@@ -35,11 +31,11 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Shop */}
           <div>
-            <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
+            <h3 className="font-semibold text-lg mb-4">Shop</h3>
             <ul className="space-y-3">
-              {["About Us", "Shop", "Categories", "Best Sellers", "New Arrivals"].map((link) => (
+              {["Writing Essentials", "Office Supplies", "Art & Craft", "School Gear"].map((link) => (
                 <li key={link}>
                   <a
                     href="#"
@@ -52,11 +48,11 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Customer Service */}
+          {/* Company */}
           <div>
-            <h3 className="font-semibold text-lg mb-4">Customer Service</h3>
+            <h3 className="font-semibold text-lg mb-4">Company</h3>
             <ul className="space-y-3">
-              {["Contact Us", "FAQs", "Shipping Info", "Returns & Exchange", "Track Order"].map((link) => (
+              {["About Us", "Careers", "Blog", "Contact"].map((link) => (
                 <li key={link}>
                   <a
                     href="#"
@@ -76,7 +72,7 @@ const Footer = () => {
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <span className="text-background/70 text-sm">
-                  123 Stationery Street, Creative District, City 12345
+                  123 Stationery St, Mumbai
                 </span>
               </li>
               <li className="flex items-center gap-3">
@@ -85,7 +81,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-                <span className="text-background/70 text-sm">hello@quilbox.com</span>
+                <span className="text-background/70 text-sm">support@quilbox.com</span>
               </li>
             </ul>
           </div>

@@ -16,7 +16,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         // Quilbox specific variants
-        primary: "bg-gradient-to-r from-[hsl(348,100%,65%)] to-[hsl(330,90%,60%)] text-white shadow-md hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5",
+        primary: "bg-primary text-primary-foreground shadow-md hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5",
         cart: "bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-1",
         add: "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground font-bold rounded-lg",
         category: "bg-card text-foreground border border-border hover:border-primary/30 hover:bg-secondary shadow-sm hover:shadow-md hover:-translate-y-1",
@@ -39,7 +39,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 
