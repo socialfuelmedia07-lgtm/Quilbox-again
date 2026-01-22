@@ -10,13 +10,6 @@ const HeroSection = () => {
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-pink-500/20 to-purple-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
 
           <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-2 mb-6">
-              <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center border border-gray-700 shadow-lg">
-                {/* Reuse QuilLogo icon style or simple red box */}
-                <div className="w-6 h-6 bg-primary transform rotate-45 rounded-sm"></div>
-              </div>
-            </div>
-
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
               Everything stationery, <br />
               at Blink-speed.
