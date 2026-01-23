@@ -4,6 +4,7 @@ import ProductSection from "@/components/ProductSection";
 import CategorySection from "@/components/CategorySection";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import FloatingCartBar from "@/components/cart/FloatingCartBar";
 import {
   bestSellers,
   discountedProducts,
@@ -62,6 +63,7 @@ const Index = () => {
         />
       </main>
       <Footer />
+      <FloatingCartBar />
       <ScrollToTop />
     </div>
   );

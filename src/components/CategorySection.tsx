@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "./ui/button";
 import productPens from "@/assets/product-pens.png";
 import productNotebooks from "@/assets/product-notebooks.png";
 import productArt from "@/assets/product-art.png";
@@ -16,38 +19,65 @@ const categories = [
 ];
 
 const CategorySection = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Show 4 on mobile, all on desktop when expanded
+  const visibleCategories = isExpanded ? categories : categories.slice(0, 4);
+
   return (
     <section className="py-8 bg-background">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-left mb-6">
+        <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl md:text-2xl font-bold text-foreground">
             Shop by Category
           </h2>
+          <div className="hidden md:block">
+            <Button variant="ghost" className="text-primary font-bold">
+              View All
+            </Button>
+          </div>
         </div>
 
-        {/* Category Grid - Mobile First Scrollable */}
-        <div className="flex overflow-x-auto pb-4 gap-4 -mx-4 px-4 md:grid md:grid-cols-5 md:overflow-visible md:mx-0 md:px-0">
-          {categories.map((category, index) => (
+        {/* Category Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+          {(isExpanded ? categories : categories.slice(0, 4)).map((category, index) => (
             <Link
               to={`/category/${category.slug}`}
               key={category.name}
-              className="flex flex-col items-center min-w-[80px] group"
+              className="flex flex-col items-center p-6 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-primary/30 transition-all group"
             >
-              <div
-                className="w-20 h-20 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all mb-2 bg-secondary"
-              >
+              <div className="w-12 h-12 md:w-16 md:h-16 mb-4 transition-transform group-hover:scale-110">
                 <img
                   src={category.image}
                   alt={category.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  className="w-full h-full object-contain"
                 />
               </div>
-              <span className="text-xs md:text-sm font-medium text-center text-foreground group-hover:text-primary transition-colors">
+              <span className="text-xs md:text-sm font-bold text-center text-foreground group-hover:text-primary transition-colors">
                 {category.name}
               </span>
             </Link>
           ))}
+        </div>
+
+        {/* Mobile See More Button */}
+        <div className="mt-8 md:hidden">
+          <Button
+            variant="outline"
+            className="w-full h-12 rounded-xl font-bold gap-2 text-slate-600 dark:text-slate-300"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            {isExpanded ? (
+              <>
+                Show Less <ChevronUp className="w-4 h-4" />
+              </>
+            ) : (
+              <>
+                See More <ChevronDown className="w-4 h-4" />
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </section>

@@ -7,9 +7,9 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: "1rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1280px",
       },
     },
     extend: {
@@ -22,6 +22,10 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+        },
+        rose: {
+          DEFAULT: "#ff3366",
+          dark: "#e62e5c",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -57,6 +61,10 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      fontFamily: {
+        sans: ["'Plus Jakarta Sans'", "sans-serif"],
+        exo: ["'Exo 2'", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

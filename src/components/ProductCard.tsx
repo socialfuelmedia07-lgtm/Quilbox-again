@@ -84,13 +84,12 @@ const ProductCard = (props: ProductCardProps) => {
     <>
       <div
         className={cn(
-          "group relative block rounded-3xl overflow-hidden cursor-pointer",
-          "transition-all duration-700 ease-in-out",
-          "bg-white border border-gray-100",
-          "dark:bg-[#0f172a] dark:border-gray-800",
-          "hover:scale-[1.02] hover:shadow-xl",
-          "animate-fade-in-up",
-          shouldPulse && "animate-pulse ring-2 ring-primary/20"
+          "group relative block rounded-2xl overflow-hidden cursor-pointer",
+          "transition-all duration-300 ease-in-out",
+          "bg-white border border-slate-100",
+          "dark:bg-slate-900 dark:border-slate-800",
+          "hover:scale-[1.01] hover:shadow-lg",
+          "animate-fade-in-up"
         )}
         style={{ animationDelay: `${delay}ms` }}
         onClick={() => setOpen(true)}
@@ -98,9 +97,9 @@ const ProductCard = (props: ProductCardProps) => {
         {/* Image Container */}
         <div
           className={cn(
-            "relative aspect-square p-8 transition-colors duration-700 ease-in-out",
-            "bg-white",
-            "dark:bg-[#f3f4f6]"
+            "relative aspect-square p-6 transition-colors duration-300 ease-in-out",
+            "bg-slate-50",
+            "dark:bg-slate-800/50"
           )}
         >
           <img
@@ -113,30 +112,30 @@ const ProductCard = (props: ProductCardProps) => {
 
         {/* Content Area */}
         <div className={cn(
-          "p-5 transition-colors duration-700 ease-in-out",
-          "bg-white dark:bg-[#0f172a]"
+          "p-4 transition-colors duration-300 ease-in-out",
+          "bg-white dark:bg-slate-900"
         )}>
           {packSize && (
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
               {packSize}
             </p>
           )}
 
           <h3 className={cn(
-            "font-bold text-base mb-3 line-clamp-2 transition-colors duration-700",
-            "text-gray-900 dark:text-white"
+            "font-bold text-base mb-3 line-clamp-2 transition-colors duration-300",
+            "text-slate-900 dark:text-white"
           )}>
             {name}
           </h3>
 
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-xs text-gray-400 line-through decoration-1">
+              <span className="text-xs text-slate-400 dark:text-slate-500 line-through decoration-1">
                 ₹{originalPrice}
               </span>
               <span className={cn(
-                "text-xl font-bold transition-colors duration-700",
-                "text-gray-900 dark:text-white"
+                "text-lg font-bold transition-colors duration-300",
+                "text-slate-900 dark:text-white"
               )}>
                 ₹{discountedPrice}
               </span>
@@ -146,9 +145,9 @@ const ProductCard = (props: ProductCardProps) => {
               variant="default"
               size="sm"
               className={cn(
-                "h-8 px-5 rounded-lg border transition-all duration-300",
-                "bg-white border-primary text-primary hover:bg-primary hover:text-white",
-                "dark:bg-transparent dark:border-primary dark:text-primary dark:hover:bg-primary dark:hover:text-white",
+                "h-8 px-4 rounded-lg border transition-all duration-300",
+                "bg-white border-[#ff3366] text-[#ff3366] hover:bg-[#ff3366] hover:text-white",
+                "dark:bg-transparent dark:border-[#ff3366] dark:text-[#ff3366] dark:hover:bg-[#ff3366] dark:hover:text-white",
                 "font-bold tracking-wide text-xs",
                 isAdding && "scale-95 opacity-80"
               )}

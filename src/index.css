@@ -3,14 +3,15 @@
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800;900&display=swap');
 
 @layer base {
   :root {
-    /* Core Brand Colors - Quilbox Red/Black/White */
-    --background: 0 0% 100%;
-    /* Pure White */
+    /* Reference Site Colors - Slate/Gray/Pink */
+    --background: 210 40% 98%;
+    /* Slate-50 approx: hsl(210, 40%, 98%) */
     --foreground: 222 47% 11%;
-    /* Dark Slate */
+    /* Gray-900 */
 
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -18,18 +19,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary - Vibrant Red (#E74C3C) */
-    --primary: 6 78% 57%;
+    /* Primary - Pink/Rose (#ff3366) */
+    --primary: 345 100% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Light Grey/Off White */
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11.2%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Accent */
     --accent: 210 40% 96.1%;
     --accent-foreground: 222 47% 11.2%;
 
@@ -38,24 +37,24 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 6 78% 57%;
+    --ring: 345 100% 60%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 
   .dark {
-    /* Midnight Navy Palette #0f172a */
+    /* Reference Site Dark Mode - Slate-900 */
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
 
-    /* Slightly lighter navy for cards #1e293b */
+    /* Slate-800 for cards */
     --card: 217 33% 17%;
     --card-foreground: 210 40% 98%;
 
     --popover: 217 33% 17%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 6 78% 57%;
+    --primary: 345 100% 60%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217 33% 17%;
@@ -72,7 +71,7 @@
 
     --border: 217 33% 20%;
     --input: 217 33% 20%;
-    --ring: 6 78% 57%;
+    --ring: 345 100% 60%;
   }
 }
 

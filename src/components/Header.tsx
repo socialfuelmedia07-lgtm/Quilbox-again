@@ -70,21 +70,21 @@ const Header = () => {
     <>
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 min-h-[80px] h-auto md:h-20",
           isScrolled
-            ? "bg-background/80 backdrop-blur-md py-3 shadow-md border-b"
-            : "bg-background py-4"
+            ? "bg-background/80 backdrop-blur-md shadow-sm border-b"
+            : "bg-background"
         )}
       >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between gap-4">
+        <div className="container mx-auto h-full">
+          <div className="flex items-center justify-between gap-4 h-full">
             {/* Logo */}
-            <a href="/" className="flex items-center gap-2 group flex-shrink-0">
-              <BrandLogo />
+            <a href="/" className="flex items-center gap-2 group shrink-0">
+              <BrandLogo className="scale-90 md:scale-100 origin-left" />
             </a>
 
             {/* Search Bar - Desktop */}
-            <div className="hidden md:flex flex-1 max-w-2xl items-center relative gap-3 mx-4">
+            <div className="hidden md:flex flex-1 max-w-xl items-center relative gap-3 mx-4">
               <div
                 className={cn(
                   "flex-1 relative transition-all duration-300",
@@ -94,10 +94,10 @@ const Header = () => {
                 <form
                   onSubmit={handleSearchSubmit}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2.5 rounded-2xl border transition-all duration-300",
+                    "flex items-center gap-2 px-4 py-2.5 rounded-full border transition-all duration-300 bg-muted/30",
                     isSearchFocused
-                      ? "border-primary bg-background text-foreground shadow-lg shadow-primary/10"
-                      : "border-input bg-muted/50 text-foreground hover:bg-muted/80"
+                      ? "border-primary bg-background shadow-lg shadow-primary/10"
+                      : "border-transparent hover:border-input"
                   )}
                 >
                   <Search className={cn("w-5 h-5", isSearchFocused ? "text-primary" : "text-muted-foreground")} />
@@ -111,25 +111,8 @@ const Header = () => {
                     className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground text-sm text-foreground"
                   />
                 </form>
-
-                {/* Search Suggestions */}
-                {isSearchFocused && searchQuery && suggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white text-black rounded-xl border border-gray-200 shadow-xl overflow-hidden animate-scale-in z-50">
-                    {suggestions.map((suggestion, index) => (
-                      <button
-                        key={suggestion}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3"
-                        style={{ animationDelay: `${index * 50}ms` }}
-                      >
-                        <Search className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-800">{suggestion}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
+
             </div>
 
             {/* Actions */}
@@ -177,15 +160,15 @@ const Header = () => {
                 <Button
                   variant="cart"
                   size="default"
-                  className="gap-2 bg-primary hover:bg-primary/90 text-white px-6 rounded-full"
+                  className="gap-2 bg-[#ff3366] hover:bg-[#e62e5c] text-white px-4 md:px-6 rounded-full shadow-lg shadow-rose/20 relative h-10 md:h-12"
                   onClick={() => toggleCart(true)}
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  <span className="hidden lg:block font-bold">My Cart</span>
+                  <span className="hidden sm:block font-bold">My Cart</span>
                   {cartCount > 0 && (
-                    <span className="min-w-[1.5rem] h-6 rounded-full bg-white text-primary text-xs flex items-center justify-center font-bold">
+                    <div className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#ff3366] text-white text-[10px] font-bold shadow-sm border-2 border-white dark:border-slate-900">
                       {cartCount}
-                    </span>
+                    </div>
                   )}
                 </Button>
               </div>
@@ -204,13 +187,15 @@ const Header = () => {
 
 
           {/* Mobile Search */}
-          <div className="md:hidden mt-3">
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm text-white">
-              <Search className="w-5 h-5 text-white/70" />
+          <div className="md:hidden pb-2 px-4">
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm">
+              <Search className="w-5 h-5 text-slate-500" />
               <input
                 type="text"
                 placeholder="Search products..."
-                className="flex-1 bg-transparent outline-none text-white placeholder:text-white/60 text-sm"
+                readOnly
+                onClick={() => setIsSearchFocused(true)}
+                className="flex-1 bg-transparent outline-none text-slate-900 dark:text-white placeholder:text-slate-500 text-sm font-medium"
               />
             </div>
           </div>
