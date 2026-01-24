@@ -21,7 +21,7 @@ const BrandLogo = ({ className }: BrandLogoProps) => {
             {/* Text Segment */}
             <div className="flex font-exo font-black text-3xl md:text-4xl tracking-tighter">
                 <span className="text-black dark:text-white transition-colors duration-300">Quil</span>
-                <span className="text-[#ff3366]">Box</span>
+                <span className="text-[#ff0000]">Box</span>
             </div>
         </div>
     );
