@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "../components/Header";
 import HeroSection from "@/components/HeroSection";
 import ProductSection from "@/components/ProductSection";
@@ -8,7 +8,7 @@ import FloatingCartBar from "@/components/cart/FloatingCartBar";
 import { productApi } from "@/services/api";
 
 const Index = () => {
-  const [products, setProducts] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,13 +20,14 @@ const Index = () => {
           id: p._id,
           name: p.name,
           image: p.imageUrl,
-          originalPrice: p.price + 50, // Mock discount for UI
+          originalPrice: p.price + Math.floor(Math.random() * 100 + 20),
           discountedPrice: p.price,
           discount: 15,
-          category: "Writing", // Default category
-          brand: "Quilbox"
+          category: p.category || "Writing",
+          brand: "Quilbox",
+          popularity: Math.floor(Math.random() * 100)
         }));
-        setProducts(mappedProducts);
+        setAllProducts(mappedProducts);
       } catch (error) {
         console.error("Failed to fetch products:", error);
       } finally {
@@ -36,6 +37,14 @@ const Index = () => {
 
     fetchProducts();
   }, []);
+
+  // Filter products for different sections
+  const bestSellers = useMemo(() => [...allProducts].sort((a, b) => b.popularity - a.popularity).slice(0, 8), [allProducts]);
+  const discountedProducts = useMemo(() => allProducts.slice(0, 8), [allProducts]); // Or sort by discount
+  const notebooks = useMemo(() => allProducts.filter(p => p.category === "Notebooks"), [allProducts]);
+  const writingEssentials = useMemo(() => allProducts.filter(p => p.category === "Writing"), [allProducts]);
+  const artSupplies = useMemo(() => allProducts.filter(p => p.category === "Art"), [allProducts]);
+  const combos = useMemo(() => allProducts.filter(p => p.category === "Combo"), [allProducts]);
 
   if (loading) {
     return (
@@ -54,16 +63,49 @@ const Index = () => {
         {/* 1. Categories */}
         <CategorySection />
 
-        {/* 2. Real Products from DB */}
+        {/* 2. Best Sellers */}
         <ProductSection
-          title="Our Exclusive Collection"
-          subtitle="Real products from our database ready for checkout!"
-          products={products}
+          title="Best Sales Products"
+          products={bestSellers}
           isBestSeller
-          viewAllHref="/search"
+          viewAllHref="/search?q=best+sellers"
         />
 
-        {/* Optional: Fallback to some static sections or just show one big section for now */}
+        {/* 3. Discounted Products */}
+        <ProductSection
+          title="Top Discounted Deals"
+          subtitle="Grab them before they're gone!"
+          products={discountedProducts}
+          viewAllHref="/search?q=discount"
+        />
+
+        {/* 4. Notebooks */}
+        <ProductSection
+          title="Premium Notebooks"
+          products={notebooks}
+          viewAllHref="/category/notebooks"
+        />
+
+        {/* 5. Pens */}
+        <ProductSection
+          title="Writing Essentials"
+          products={writingEssentials}
+          viewAllHref="/category/writing"
+        />
+
+        {/* 6. Arts */}
+        <ProductSection
+          title="Art Supplies"
+          products={artSupplies}
+          viewAllHref="/category/art"
+        />
+
+        {/* 7. Combo */}
+        <ProductSection
+          title="Value Combos"
+          products={combos}
+          viewAllHref="/category/combo"
+        />
       </main>
       <Footer />
       <FloatingCartBar />

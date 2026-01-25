@@ -3,68 +3,72 @@ const Product = require('./src/models/Product');
 require('dotenv').config();
 
 const products = [
+    // Writing
     {
         name: "Classic Ballpoint Pen - Blue",
-        description: "Smooth writing blue ink ballpoint pen.",
+        category: "Writing",
         price: 25,
         stock: 100,
         imageUrl: "https://images.unsplash.com/photo-1518126273410-85f02888924b?w=500&auto=format&fit=crop&q=60",
         isActive: true
     },
     {
+        name: "Executive Parker Vector Pen",
+        category: "Writing",
+        price: 850,
+        stock: 15,
+        imageUrl: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=60",
+        isActive: true
+    },
+    // Notebooks
+    {
         name: "A5 Hardcover Notebook",
-        description: "Premium ivory paper, 160 pages, ruled.",
+        category: "Notebooks",
         price: 199,
         stock: 50,
         imageUrl: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=500&auto=format&fit=crop&q=60",
         isActive: true
     },
     {
+        name: "Premium Leather Journal",
+        category: "Notebooks",
+        price: 1200,
+        stock: 10,
+        imageUrl: "https://images.unsplash.com/photo-1544816153-12ad5d714304?w=500&auto=format&fit=crop&q=60",
+        isActive: true
+    },
+    // Art
+    {
         name: "Acrylic Paint Set - 12 Colors",
-        description: "High-quality acrylic paints for professional artists.",
+        category: "Art",
         price: 499,
         stock: 30,
         imageUrl: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=500&auto=format&fit=crop&q=60",
         isActive: true
     },
     {
-        name: "Mechanical Pencil 0.5mm",
-        description: "Ergonomic grip mechanical pencil with 0.5mm lead.",
-        price: 45,
-        stock: 200,
+        name: "Dual Tip Calligraphy Markers",
+        category: "Art",
+        price: 650,
+        stock: 25,
+        imageUrl: "https://images.unsplash.com/photo-1580562867835-0a6958393bb6?w=500&auto=format&fit=crop&q=60",
+        isActive: true
+    },
+    // Combo
+    {
+        name: "Student Starter Kit",
+        category: "Combo",
+        price: 450,
+        stock: 40,
         imageUrl: "https://images.unsplash.com/photo-1502472944661-345386f6a73c?w=500&auto=format&fit=crop&q=60",
         isActive: true
     },
     {
-        name: "Office Organizer Tray",
-        description: "Mesh metal desk organizer with multiple compartments.",
-        price: 350,
-        stock: 20,
+        name: "Professional Artist Bundle",
+        category: "Combo",
+        price: 2500,
+        stock: 5,
         imageUrl: "https://images.unsplash.com/photo-1591123120675-6f7f1aae0e5b?w=500&auto=format&fit=crop&q=60",
-        isActive: true
-    },
-    {
-        name: "Executive Parker Vector Pen",
-        description: "Elegant stainless steel body with gold clip.",
-        price: 850,
-        stock: 15,
-        imageUrl: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=60",
-        isActive: true
-    },
-    {
-        name: "Leather Bound Journal",
-        description: "Authentic leather journal with handmade paper.",
-        price: 1200,
-        stock: 10,
-        imageUrl: "https://images.unsplash.com/photo-1544816153-12ad5d714304?w=500&auto=format&fit=crop&q=60",
-        isActive: true
-    },
-    {
-        name: "Dual Tip Calligraphy Markers",
-        description: "Set of 24 vibrant colors with brush and fine tips.",
-        price: 650,
-        stock: 25,
-        imageUrl: "https://images.unsplash.com/photo-1580562867835-0a6958393bb6?w=500&auto=format&fit=crop&q=60",
         isActive: true
     }
 ];
@@ -74,7 +78,7 @@ const seed = async () => {
         await mongoose.connect(process.env.MONGO_URI);
         await Product.deleteMany({});
         await Product.insertMany(products);
-        console.log(`Database seeded with ${products.length} real products!`);
+        console.log(`Database seeded with ${products.length} categorized products!`);
         process.exit();
     } catch (error) {
         console.error("Seeding failed:", error);
