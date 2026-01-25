@@ -1,51 +1,54 @@
-# QuilBox Deployment Guide 🚀
+# QuilBox Deployment Guide (Firebase Edition) 🚀
 
-This guide explains how to deploy the QuilBox full-stack application.
+This guide explains how to deploy the QuilBox full-stack application using Firebase for the frontend.
 
-## 1. Frontend Deployment (Vercel)
+## 1. Frontend Deployment (Firebase Hosting)
 
-Vercel is the easiest way to deploy the React/Vite frontend.
+Firebase provides a reliable and fast way to host your React/Vite frontend.
 
-1.  **Push to GitHub**: Ensure your latest changes are pushed.
-2.  **Connect to Vercel**:
-    *   Log in to [vercel.com](https://vercel.com).
-    *   Click "Add New" > "Project".
-    *   Import the `Quilboxwithoutbackend` repository.
-3.  **Configure Environment Variables**:
-    *   In the Vercel dashboard, go to "Settings" > "Environment Variables".
-    *   Add `VITE_API_URL` with the URL of your deployed backend (e.g., `https://quilbox-backend.onrender.com`).
-4.  **Deploy**: Click "Deploy".
+1.  **Install Firebase Tools**:
+    ```bash
+    npm install -g firebase-tools
+    ```
+2.  **Login to Firebase**:
+    ```bash
+    npx firebase login
+    ```
+3.  **Initialize/Connect Project**:
+    *   If you already have a project, run:
+        ```bash
+        npx firebase use --add
+        ```
+    *   Then select your project from the list.
+4.  **Build and Deploy**:
+    ```bash
+    npm run build
+    ```
+    ```bash
+    npx firebase deploy --only hosting
+    ```
+    *   **Your URL will be**: `https://<your-project-id>.web.app`
 
-## 2. Backend Deployment (Render)
+## 2. Backend Deployment (Render) - REQUIRED for OTP
 
-Render is great for hosting Node.js/Express APIs.
+The frontend needs a live API to handle Login, OTP, and Cart persistence.
 
-1.  **Push to GitHub**: Ensure the `Backend` folder is pushed.
-2.  **Connect to Render**:
-    *   Log in to [dashboard.render.com](https://dashboard.render.com).
-    *   Click "New" > "Web Service".
-    *   Select your repository.
-3.  **Configure Service**:
+1.  **Push the `Backend` folder to GitHub**.
+2.  **Deploy to Render**:
     *   **Root Directory**: `Backend`
     *   **Build Command**: `npm install`
     *   **Start Command**: `npm start`
-4.  **Environment Variables**:
-    *   Add `MONGO_URI`: Your MongoDB Atlas connection string.
-    *   Add `JWT_SECRET`: A secure random string.
-    *   Add `PORT`: `5000` (or leave default).
-5.  **CORS**: Ensure the backend allows requests from your Vercel frontend URL.
+3.  **Get your Backend URL** (e.g., `https://quilbox-api.onrender.com`).
 
-## 3. Database (MongoDB Atlas)
+## 3. Link Frontend to Backend
 
-Don't use `localhost` in production.
-1.  Create a free cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
-2.  Whitelist all IP addresses (`0.0.0.0/0`) or specific deployment IPs.
-3.  Copy the connection string and use it as `MONGO_URI` in the backend environment variables.
+1.  In your Firebase project settings (or in the `src/services/api.ts` file if you are building locally), ensure the `VITE_API_URL` points to your Render URL.
+2.  You can set this in Firebase by adding an environment variable during the build process if using CI/CD, or by updating your local `.env` before running `npm run build`.
 
 ---
 
 ### Verification
 Once deployed:
-1.  Visit the Vercel URL.
-2.  Check if the new logo appears in the Header.
-3.  Try to request an OTP; it should talk to the live backend.
+1.  Visit your `.web.app` URL.
+2.  Check if the logo and all sections appear.
+3.  The app is now fully live on Firebase!
