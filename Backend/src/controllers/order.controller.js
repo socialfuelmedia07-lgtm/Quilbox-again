@@ -70,7 +70,84 @@ const getMyOrders = async (req, res) => {
     }
 };
 
+// @desc    Get order by ID
+// @route   GET /orders/:id
+// @access  Private
+const getOrderById = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id).populate('items.product');
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        // Check if order belongs to user
+        if (order.user.toString() !== req.user.id) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+        res.status(200).json(order);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Update order status
+// @route   PATCH /orders/:id/status
+// @access  Private (Simulated Admin)
+const updateOrderStatus = async (req, res) => {
+    const { status } = req.body;
+    if (!['packed', 'on_the_way'].includes(status)) {
+        return res.status(400).json({ message: 'Invalid status update' });
+    }
+
+    try {
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            { new: true }
+        );
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        res.status(200).json(order);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Refund order
+// @route   POST /orders/:id/refund
+// @access  Private
+const refundOrder = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        if (order.status !== 'on_the_way') {
+            return res.status(400).json({ message: 'Refund only available when order is on the way' });
+        }
+
+        // Increase product stock back
+        for (const item of order.items) {
+            await Product.findByIdAndUpdate(item.product, {
+                $inc: { stock: item.quantity },
+            });
+        }
+
+        // Update status to refunded
+        order.status = 'refunded';
+        await order.save();
+
+        res.status(200).json({ message: 'Order refunded successfully', order });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     placeOrder,
     getMyOrders,
+    getOrderById,
+    updateOrderStatus,
+    refundOrder,
 };

@@ -16,7 +16,12 @@ const requestOtp = async (req, res) => {
         // Create user if not exists
         let user = await User.findOne({ email });
         if (!user) {
-            user = await User.create({ name, email });
+            // Only include name if it's provided in the request body
+            const userData = { email };
+            if (name !== undefined) {
+                userData.name = name;
+            }
+            user = await User.create(userData);
         }
 
         // Generate 4-digit OTP

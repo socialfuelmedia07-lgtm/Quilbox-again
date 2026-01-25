@@ -82,6 +82,18 @@ export const orderApi = {
         const response = await api.get('/orders');
         return response.data;
     },
+    getOrderById: async (id: string) => {
+        const response = await api.get(`/orders/${id}`);
+        return response.data;
+    },
+    updateOrderStatus: async (id: string, status: string) => {
+        const response = await api.patch(`/orders/${id}/status`, { status });
+        return response.data;
+    },
+    refundOrder: async (id: string) => {
+        const response = await api.post(`/orders/${id}/refund`);
+        return response.data;
+    },
 };
 
 export default api;

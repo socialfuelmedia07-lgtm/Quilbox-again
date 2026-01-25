@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, CreditCard, CheckCircle2, ShoppingBag, Truck } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, ShoppingBag, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { cn } from "@/lib/utils";
+import { orderApi } from "@/services/api";
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const { cart, cartTotal, cartCount, clearCart } = useCart();
     const { toast } = useToast();
-    const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<"COD" | "UPI" | "GPAY">("COD");
     const [address, setAddress] = useState("123 Stationery St, Mumbai, Maharashtra 400001");
     const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -20,43 +21,32 @@ const CheckoutPage = () => {
     const deliveryCharge = 40;
     const finalTotal = cartTotal + deliveryCharge;
 
-    const handlePlaceOrder = () => {
-        if (paymentMethod !== "COD") {
-            // Mock payment process
+    const handlePlaceOrder = async () => {
+        setLoading(true);
+        try {
+            // Call real backend API
+            const response = await orderApi.placeOrder();
+
             toast({
-                title: "Processing Payment",
-                description: "Redirecting to payment gateway...",
+                title: "Order Successful",
+                description: "Your stationery is being packed!",
             });
-        }
 
-        // Mock success
-        setTimeout(() => {
-            setIsOrderPlaced(true);
+            // Clear local cart
             clearCart();
-        }, 1000);
-    };
 
-    if (isOrderPlaced) {
-        return (
-            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 animate-in fade-in duration-500">
-                <div className="flex flex-col items-center text-center space-y-6">
-                    <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
-                        <CheckCircle2 className="w-16 h-16 text-green-600" />
-                    </div>
-                    <div className="space-y-2">
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter">ORDER PLACED!</h1>
-                        <p className="text-slate-500 font-medium">Your premium stationery is on its way.</p>
-                    </div>
-                    <Button
-                        onClick={() => navigate("/")}
-                        className="bg-[#ff3366] hover:bg-[#e62e5c] text-white px-8 py-6 rounded-2xl font-bold text-lg shadow-xl shadow-rose/20 transition-all hover:scale-105"
-                    >
-                        Continue Shopping
-                    </Button>
-                </div>
-            </div>
-        );
-    }
+            // Redirect to status page
+            navigate(`/order-status/${response._id}`);
+        } catch (error: any) {
+            toast({
+                title: "Order Failed",
+                description: error.response?.data?.message || "Something went wrong",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -171,16 +161,17 @@ const CheckoutPage = () => {
                                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-6">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Refund Policy</p>
                                     <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                                        Once the order is placed and the delivery partner is on the way, you cannot cancel the order. No refunds after dispatch.
+                                        Once the order is placed and the delivery partner is on the way, you can request a refund. Instant refund available after dispatch.
                                     </p>
                                 </div>
 
                                 <Button
+                                    disabled={loading || cartCount === 0}
                                     className="w-full bg-[#ff3366] hover:bg-[#e62e5c] text-white py-8 rounded-2xl font-black text-xl tracking-tighter shadow-2xl shadow-rose/20 transition-all hover:scale-[1.02] active:scale-95 group"
                                     onClick={handlePlaceOrder}
                                 >
-                                    ORDER NOW
-                                    <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                                    {loading ? "PLACING ORDER..." : "PLACE ORDER"}
+                                    {!loading && <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>}
                                 </Button>
                             </div>
                         </div>
