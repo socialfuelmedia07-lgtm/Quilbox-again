@@ -1,77 +1,127 @@
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
+const Otp = require('../models/Otp');
 const jwt = require('jsonwebtoken');
 
-// @desc    Register a new user
-// @route   POST /auth/register
+// @desc    Request OTP
+// @route   POST /auth/request-otp
 // @access  Public
-const register = async (req, res) => {
-    const { name, email, password } = req.body;
+const requestOtp = async (req, res) => {
+    const { name, email } = req.body;
 
     try {
-        // Check if user exists
-        const userExists = await User.findOne({ email });
-
-        if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
+        if (!name || !email) {
+            return res.status(400).json({ message: 'Please provide name and email' });
         }
 
-        // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        // Create user if not exists
+        let user = await User.findOne({ email });
 
-        // Create user
-        const user = await User.create({
-            name,
+        if (!user) {
+            user = await User.create({
+                name,
+                email,
+            });
+        }
+
+        // Generate 4-digit OTP
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+        // Save OTP with expiry (5 minutes)
+        await Otp.create({
             email,
-            password: hashedPassword,
+            otp,
         });
 
-        if (user) {
-            res.status(201).json({
-                message: 'User registered successfully',
+        // Log OTP to console (for development)
+        console.log(`OTP for ${email}: ${otp}`);
+
+        res.status(200).json({
+            message: 'OTP sent successfully',
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Verify OTP
+// @route   POST /auth/verify-otp
+// @access  Public
+const verifyOtp = async (req, res) => {
+    const { email, otp } = req.body;
+
+    try {
+        if (!email || !otp) {
+            return res.status(400).json({ message: 'Please provide email and OTP' });
+        }
+
+        // Find OTP
+        const otpRecord = await Otp.findOne({ email, otp });
+
+        if (!otpRecord) {
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+
+        // Check if OTP is expired
+        if (otpRecord.expiresAt < new Date()) {
+            await Otp.deleteOne({ _id: otpRecord._id });
+            return res.status(400).json({ message: 'OTP has expired' });
+        }
+
+        // Mark user as verified
+        await User.findOneAndUpdate({ email }, { isVerified: true });
+
+        // Delete used OTP
+        await Otp.deleteOne({ _id: otpRecord._id });
+
+        res.status(200).json({
+            message: 'OTP verified successfully',
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Complete profile
+// @route   POST /auth/complete-profile
+// @access  Public
+const completeProfile = async (req, res) => {
+    const { email, firstName, lastName, age } = req.body;
+
+    try {
+        if (!email || !firstName || !lastName || !age) {
+            return res.status(400).json({ message: 'Please provide all required fields' });
+        }
+
+        // Update user profile
+        const user = await User.findOneAndUpdate(
+            { email },
+            { firstName, lastName, age },
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!user.isVerified) {
+            return res.status(400).json({ message: 'Please verify your email first' });
+        }
+
+        // Generate JWT
+        const token = generateToken(user._id);
+
+        res.status(200).json({
+            token,
+            user: {
                 _id: user._id,
                 name: user.name,
                 email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                age: user.age,
                 role: user.role,
-            });
-        } else {
-            res.status(400).json({ message: 'Invalid user data' });
-        }
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// @desc    Authenticate a user
-// @route   POST /auth/login
-// @access  Public
-const login = async (req, res) => {
-    const { email, password } = req.body;
-
-    try {
-        // Check for user email
-        const user = await User.findOne({ email });
-
-        if (user && (await bcrypt.compare(password, user.password))) {
-            res.json({
-                token: generateToken(user._id),
-            });
-        } else {
-            res.status(401).json({ message: 'Invalid credentials' });
-        }
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// @desc    Get user data
-// @route   GET /auth/me
-// @access  Private
-const getMe = async (req, res) => {
-    try {
-        const user = await User.findById(req.user).select('-password');
-        res.json(user);
+            },
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -85,7 +135,7 @@ const generateToken = (id) => {
 };
 
 module.exports = {
-    register,
-    login,
-    getMe,
+    requestOtp,
+    verifyOtp,
+    completeProfile,
 };
