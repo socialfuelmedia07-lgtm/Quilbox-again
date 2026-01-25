@@ -1,19 +1,50 @@
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import HeroSection from "@/components/HeroSection";
 import ProductSection from "@/components/ProductSection";
 import CategorySection from "@/components/CategorySection";
 import Footer from "@/components/Footer";
 import FloatingCartBar from "@/components/cart/FloatingCartBar";
-import {
-  bestSellers,
-  discountedProducts,
-  notebooks,
-  writingEssentials,
-  artSupplies,
-  combos
-} from "@/data/products";
+import { productApi } from "@/services/api";
 
 const Index = () => {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await productApi.getProducts();
+        // Map backend fields to frontend fields
+        const mappedProducts = data.map((p: any) => ({
+          id: p._id,
+          name: p.name,
+          image: p.imageUrl,
+          originalPrice: p.price + 50, // Mock discount for UI
+          discountedPrice: p.price,
+          discount: 15,
+          category: "Writing", // Default category
+          brand: "Quilbox"
+        }));
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -23,49 +54,16 @@ const Index = () => {
         {/* 1. Categories */}
         <CategorySection />
 
-        {/* 2. Best Sellers */}
+        {/* 2. Real Products from DB */}
         <ProductSection
-          title="Best Sales Products"
-          products={bestSellers}
+          title="Our Exclusive Collection"
+          subtitle="Real products from our database ready for checkout!"
+          products={products}
           isBestSeller
-          viewAllHref="/search?q=best+sellers"
+          viewAllHref="/search"
         />
 
-        {/* 3. Discounted Products */}
-        <ProductSection
-          title="Top Discounted Deals"
-          subtitle="Grab them before they're gone!"
-          products={discountedProducts}
-          viewAllHref="/search?q=discount"
-        />
-
-        {/* 4. Notebooks */}
-        <ProductSection
-          title="Premium Notebooks"
-          products={notebooks}
-          viewAllHref="/category/notebooks"
-        />
-
-        {/* 5. Pens */}
-        <ProductSection
-          title="Writing Essentials"
-          products={writingEssentials}
-          viewAllHref="/category/writing"
-        />
-
-        {/* 6. Arts */}
-        <ProductSection
-          title="Art Supplies"
-          products={artSupplies}
-          viewAllHref="/category/art"
-        />
-
-        {/* 7. Combo */}
-        <ProductSection
-          title="Value Combos"
-          products={combos}
-          viewAllHref="/category/combo"
-        />
+        {/* Optional: Fallback to some static sections or just show one big section for now */}
       </main>
       <Footer />
       <FloatingCartBar />
