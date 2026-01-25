@@ -4,38 +4,58 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import FloatingCartBar from "@/components/cart/FloatingCartBar";
-import { allProducts, bestSellers, discountedProducts } from "@/data/products";
+import { productApi } from "@/services/api";
 
 const SearchPage = () => {
     const [searchParams] = useSearchParams();
     const query = searchParams.get("q") || "";
-    const [results, setResults] = useState(allProducts);
+    const [allBackendProducts, setAllBackendProducts] = useState<any[]>([]);
+    const [results, setResults] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (query) {
+        const fetchProducts = async () => {
+            try {
+                const data = await productApi.getProducts();
+                const mappedProducts = data.map((p: any) => ({
+                    id: p._id,
+                    name: p.name,
+                    image: p.imageUrl,
+                    originalPrice: p.price + 50,
+                    discountedPrice: p.price,
+                    discount: 15,
+                    category: "Writing",
+                    brand: "Quilbox",
+                    popularity: 80,
+                    rating: 4.5
+                }));
+                setAllBackendProducts(mappedProducts);
+            } catch (error) {
+                console.error("Failed to fetch products:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
+
+    useEffect(() => {
+        if (!loading) {
             const lowerQuery = query.toLowerCase().trim();
-
-            // Handle special keywords
-            if (lowerQuery === "best sellers" || lowerQuery === "best seller") {
-                setResults(bestSellers);
-                return;
-            }
-            if (lowerQuery === "discount" || lowerQuery === "discounts" || lowerQuery === "deals") {
-                setResults(discountedProducts);
+            if (!lowerQuery) {
+                setResults(allBackendProducts);
                 return;
             }
 
-            const filtered = allProducts.filter(
+            const filtered = allBackendProducts.filter(
                 (product) =>
                     product.name.toLowerCase().includes(lowerQuery) ||
                     product.category.toLowerCase().includes(lowerQuery) ||
                     product.brand.toLowerCase().includes(lowerQuery)
             );
             setResults(filtered);
-        } else {
-            setResults(allProducts);
         }
-    }, [query]);
+    }, [query, allBackendProducts, loading]);
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
