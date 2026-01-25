@@ -10,7 +10,6 @@ import ProductDetail from "./pages/ProductDetail";
 
 import SearchPage from "./pages/SearchPage";
 import CheckoutPage from "./pages/CheckoutPage";
-import OrderStatusPage from "./pages/OrderStatus";
 
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -34,7 +33,6 @@ const App = () => (
               <Route path="/category/:slug" element={<CategoryPage />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/order-status/:orderId" element={<OrderStatusPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

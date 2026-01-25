@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Minus, Plus, ShoppingCart, Star, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
-import { productApi } from "@/services/api";
+import { allProducts } from "@/data/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useState, useEffect } from "react";
@@ -14,35 +14,16 @@ const ProductDetail = () => {
     const { addToCart } = useCart();
     const [quantity, setQuantity] = useState(1);
     const [isAdding, setIsAdding] = useState(false);
-    const [product, setProduct] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+
+    // Find product
+    const product = allProducts.find((p) => p.id === id);
 
     useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                if (id) {
-                    const data = await productApi.getProductById(id);
-                    setProduct({
-                        id: data._id,
-                        name: data.name,
-                        image: data.imageUrl,
-                        originalPrice: data.price + 50,
-                        discountedPrice: data.price,
-                        discount: 15,
-                        category: "Writing",
-                        brand: "Quilbox",
-                        rating: 4.8
-                    });
-                }
-            } catch (error) {
-                console.error("Failed to fetch product:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProduct();
+        if (!product) {
+            // Optional: Redirect or just stay on 404 view if handled within render
+        }
         window.scrollTo(0, 0);
-    }, [id]);
+    }, [id, product]);
 
     if (!product) {
         return (

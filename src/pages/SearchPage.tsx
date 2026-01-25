@@ -4,58 +4,38 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import FloatingCartBar from "@/components/cart/FloatingCartBar";
-import { productApi } from "@/services/api";
+import { allProducts, bestSellers, discountedProducts } from "@/data/products";
 
 const SearchPage = () => {
     const [searchParams] = useSearchParams();
     const query = searchParams.get("q") || "";
-    const [allBackendProducts, setAllBackendProducts] = useState<any[]>([]);
-    const [results, setResults] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [results, setResults] = useState(allProducts);
 
     useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const data = await productApi.getProducts();
-                const mappedProducts = data.map((p: any) => ({
-                    id: p._id,
-                    name: p.name,
-                    image: p.imageUrl,
-                    originalPrice: p.price + 50,
-                    discountedPrice: p.price,
-                    discount: 15,
-                    category: "Writing",
-                    brand: "Quilbox",
-                    popularity: 80,
-                    rating: 4.5
-                }));
-                setAllBackendProducts(mappedProducts);
-            } catch (error) {
-                console.error("Failed to fetch products:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProducts();
-    }, []);
-
-    useEffect(() => {
-        if (!loading) {
+        if (query) {
             const lowerQuery = query.toLowerCase().trim();
-            if (!lowerQuery) {
-                setResults(allBackendProducts);
+
+            // Handle special keywords
+            if (lowerQuery === "best sellers" || lowerQuery === "best seller") {
+                setResults(bestSellers);
+                return;
+            }
+            if (lowerQuery === "discount" || lowerQuery === "discounts" || lowerQuery === "deals") {
+                setResults(discountedProducts);
                 return;
             }
 
-            const filtered = allBackendProducts.filter(
+            const filtered = allProducts.filter(
                 (product) =>
                     product.name.toLowerCase().includes(lowerQuery) ||
                     product.category.toLowerCase().includes(lowerQuery) ||
                     product.brand.toLowerCase().includes(lowerQuery)
             );
             setResults(filtered);
+        } else {
+            setResults(allProducts);
         }
-    }, [query, allBackendProducts, loading]);
+    }, [query]);
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
