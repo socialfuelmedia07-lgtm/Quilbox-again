@@ -1,24 +1,21 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-
-dotenv.config();
+const authRoutes = require('./routes/auth.routes');
+const productRoutes = require('./routes/product.routes');
 
 const app = express();
 
-const authRoutes = require('./routes/auth.routes');
-
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('Quilbox Backend API is running!');
-});
-
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK' });
-});
-
+// Routes
 app.use('/auth', authRoutes);
+app.use('/products', productRoutes);
+
+// Health check
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date() });
+});
 
 module.exports = app;

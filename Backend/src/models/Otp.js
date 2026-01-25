@@ -4,20 +4,16 @@ const otpSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        lowercase: true,
     },
     otp: {
         type: String,
         required: true,
     },
-    expiresAt: {
+    createdAt: {
         type: Date,
-        required: true,
-        default: () => new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
+        default: Date.now,
+        expires: 300, // 5 minutes in seconds
     },
 });
-
-// TTL index to auto-delete expired OTPs
-otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('Otp', otpSchema);

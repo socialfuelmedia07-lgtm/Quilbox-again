@@ -9,35 +9,26 @@ const requestOtp = async (req, res) => {
     const { name, email } = req.body;
 
     try {
-        if (!name || !email) {
-            return res.status(400).json({ message: 'Please provide name and email' });
+        if (!email) {
+            return res.status(400).json({ message: 'Please provide an email' });
         }
 
         // Create user if not exists
         let user = await User.findOne({ email });
-
         if (!user) {
-            user = await User.create({
-                name,
-                email,
-            });
+            user = await User.create({ name, email });
         }
 
         // Generate 4-digit OTP
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-        // Save OTP with expiry (5 minutes)
-        await Otp.create({
-            email,
-            otp,
-        });
+        // Save OTP (TTL index will handle expiry in 5 mins)
+        await Otp.create({ email, otp });
 
-        // Log OTP to console (for development)
+        // Log OTP to console
         console.log(`OTP for ${email}: ${otp}`);
 
-        res.status(200).json({
-            message: 'OTP sent successfully',
-        });
+        res.status(200).json({ message: 'OTP sent successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -54,34 +45,24 @@ const verifyOtp = async (req, res) => {
             return res.status(400).json({ message: 'Please provide email and OTP' });
         }
 
-        // Find OTP
         const otpRecord = await Otp.findOne({ email, otp });
-
         if (!otpRecord) {
-            return res.status(400).json({ message: 'Invalid OTP' });
-        }
-
-        // Check if OTP is expired
-        if (otpRecord.expiresAt < new Date()) {
-            await Otp.deleteOne({ _id: otpRecord._id });
-            return res.status(400).json({ message: 'OTP has expired' });
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
         }
 
         // Mark user as verified
         await User.findOneAndUpdate({ email }, { isVerified: true });
 
-        // Delete used OTP
+        // Delete OTP
         await Otp.deleteOne({ _id: otpRecord._id });
 
-        res.status(200).json({
-            message: 'OTP verified successfully',
-        });
+        res.status(200).json({ message: 'OTP verified successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Complete profile
+// @desc    Complete profile and get token
 // @route   POST /auth/complete-profile
 // @access  Public
 const completeProfile = async (req, res) => {
@@ -89,31 +70,34 @@ const completeProfile = async (req, res) => {
 
     try {
         if (!email || !firstName || !lastName || !age) {
-            return res.status(400).json({ message: 'Please provide all required fields' });
+            return res.status(400).json({ message: 'Please provide all fields (email, firstName, lastName, age)' });
         }
 
-        // Update user profile
-        const user = await User.findOneAndUpdate(
-            { email },
-            { firstName, lastName, age },
-            { new: true }
-        );
-
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
         if (!user.isVerified) {
-            return res.status(400).json({ message: 'Please verify your email first' });
+            return res.status(400).json({ message: 'User is not verified' });
         }
 
+        // Update profile
+        user.firstName = firstName;
+        user.lastName = lastName;
+        user.age = age;
+        await user.save();
+
         // Generate JWT
-        const token = generateToken(user._id);
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+            expiresIn: '30d',
+        });
 
         res.status(200).json({
+            message: 'Profile completed',
             token,
             user: {
-                _id: user._id,
+                id: user._id,
                 name: user.name,
                 email: user.email,
                 firstName: user.firstName,
@@ -125,13 +109,6 @@ const completeProfile = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-};
-
-// Generate JWT
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d',
-    });
 };
 
 module.exports = {

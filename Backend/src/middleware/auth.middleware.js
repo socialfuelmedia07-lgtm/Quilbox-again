@@ -3,10 +3,7 @@ const jwt = require('jsonwebtoken');
 const protect = async (req, res, next) => {
     let token;
 
-    if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith('Bearer')
-    ) {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             // Get token from header
             token = req.headers.authorization.split(' ')[1];
@@ -14,12 +11,12 @@ const protect = async (req, res, next) => {
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-            // Attach user id to req.user
-            req.user = decoded.id;
+            // Attach userId to request
+            req.user = { id: decoded.id };
 
             next();
         } catch (error) {
-            console.error(error);
+            console.error('Auth error:', error.message);
             res.status(401).json({ message: 'Not authorized, token failed' });
         }
     }
