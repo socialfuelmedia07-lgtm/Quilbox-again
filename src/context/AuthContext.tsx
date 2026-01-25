@@ -11,7 +11,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     isLoggedIn: boolean;
-    login: (userData: User) => void;
+    login: (userData: User, token?: string) => void;
     logout: () => void;
 }
 
@@ -30,16 +30,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, []);
 
-    const login = (userData: User) => {
+    const login = (userData: User, token?: string) => {
         setUser(userData);
         setIsLoggedIn(true);
         localStorage.setItem('quilbox_user', JSON.stringify(userData));
+        if (token) {
+            localStorage.setItem('token', token);
+        }
     };
 
     const logout = () => {
         setUser(null);
         setIsLoggedIn(false);
         localStorage.removeItem('quilbox_user');
+        localStorage.removeItem('token');
     };
 
     return (

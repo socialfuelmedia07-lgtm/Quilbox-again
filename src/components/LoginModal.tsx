@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { authApi } from '@/services/api';
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -29,17 +30,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
     if (!isOpen) return null;
 
-    const handleNext = (e: React.FormEvent) => {
+    const handleNext = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
-        // Simulate API delay
-        setTimeout(() => {
-            setLoading(false);
-
+        try {
             if (step === 'identity') {
                 if (!formData.identity) {
                     toast.error(`Please enter your ${method}`);
+                    setLoading(false);
                     return;
                 }
 
@@ -47,53 +46,65 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(formData.identity)) {
                         toast.error("Please enter a valid email address");
+                        setLoading(false);
                         return;
                     }
                 } else {
-                    const phoneRegex = /^\d{10}$/;
-                    if (!phoneRegex.test(formData.identity)) {
-                        toast.error("Please enter a valid 10-digit phone number");
-                        return;
-                    }
+                    // For now, the backend primarily supports email. 
+                    // We can either notify or try to use the phone as identity if the backend supported it.
+                    // Given the current backend implementation, we'll suggest using email.
+                    toast.error("Phone login is coming soon! Please use your Email for now.");
+                    setLoading(false);
+                    return;
                 }
 
+                // Call backend to request OTP
+                await authApi.requestOtp("", formData.identity);
                 setStep('otp');
-                toast.success(`OTP sent to your ${method}! (Code: 1234)`);
+                toast.success(`OTP sent to your ${method}! Check your terminal.`);
             }
             else if (step === 'otp') {
-                if (!formData.otp) {
-                    toast.error("Please enter the OTP");
+                if (!formData.otp || formData.otp.length < 4) {
+                    toast.error("Please enter the 4-digit OTP");
+                    setLoading(false);
                     return;
                 }
-                if (formData.otp !== '1234') {
-                    toast.error("Invalid OTP. Please try again.");
-                    return;
-                }
+
+                // Call backend to verify OTP
+                await authApi.verifyOtp(formData.identity, formData.otp);
                 setStep('profile');
                 toast.success("Identity verified successfully!");
             }
             else if (step === 'profile') {
                 if (!formData.firstName) {
                     toast.error("First Name is required");
+                    setLoading(false);
                     return;
                 }
                 if (!formData.age) {
                     toast.error("Age is required");
+                    setLoading(false);
                     return;
                 }
 
-                login({
+                // Call backend to complete profile
+                const response = await authApi.completeProfile({
+                    email: formData.identity,
                     firstName: formData.firstName,
                     lastName: formData.lastName,
-                    email: method === 'email' ? formData.identity : undefined,
-                    phoneNumber: method === 'phone' ? formData.identity : undefined,
-                    age: formData.age
+                    age: parseInt(formData.age)
                 });
+
+                login(response.user, response.token);
 
                 toast.success(`Welcome to QuilBox, ${formData.firstName}!`);
                 onClose();
             }
-        }, 800);
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Something went wrong. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,7 +134,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                         </h2>
                         <p className="text-sm text-muted-foreground">
                             {step === 'identity' && 'Choose your preferred login method'}
-                            {step === 'otp' && 'Enter the 4-digit code (Try: 1234)'}
+                            {step === 'otp' && 'Enter the 4-digit code sent to you'}
                             {step === 'profile' && 'Tell us a bit about yourself'}
                         </p>
                     </div>
