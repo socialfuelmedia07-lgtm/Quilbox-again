@@ -58,7 +58,7 @@ const addToCart = async (req, res) => {
 
         await cart.save();
         // Populate before returning
-        await cart.populate('items.product');
+        await cart.populate(['items.product']);
         res.status(200).json(cart);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -121,8 +121,32 @@ const removeCartItem = async (req, res) => {
 
         cart.items = cart.items.filter((item) => item.product.toString() !== productId);
 
+        // Reset store if cart is empty
+        if (cart.items.length === 0) {
+            cart.store = null;
+        }
+
         await cart.save();
-        await cart.populate('items.product');
+        await cart.populate(['items.product', 'store']);
+        res.status(200).json(cart);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Clear cart
+// @route   DELETE /cart
+// @access  Private
+const clearCart = async (req, res) => {
+    try {
+        let cart = await Cart.findOne({ user: req.user.id });
+        if (cart) {
+            cart.items = [];
+            cart.store = null;
+            await cart.save();
+        } else {
+            cart = await Cart.create({ user: req.user.id, store: null, items: [] });
+        }
         res.status(200).json(cart);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -134,4 +158,5 @@ module.exports = {
     addToCart,
     updateCartItem,
     removeCartItem,
+    clearCart,
 };

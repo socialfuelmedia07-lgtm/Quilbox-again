@@ -24,6 +24,20 @@ const productSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        category: {
+            type: String,
+        },
+        brand: {
+            type: String,
+        },
+        popularity: {
+            type: Number,
+            default: 0,
+        },
+        discount: {
+            type: Number,
+            default: 0,
+        },
     },
     {
         timestamps: true,

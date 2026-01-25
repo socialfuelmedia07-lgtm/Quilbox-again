@@ -4,6 +4,8 @@ const authRoutes = require('./routes/auth.routes');
 const productRoutes = require('./routes/product.routes');
 const cartRoutes = require('./routes/cart.routes');
 const orderRoutes = require('./routes/order.routes');
+const storeRoutes = require('./routes/store.routes');
+const checkoutRoutes = require('./routes/checkout.routes');
 
 const app = express();
 
@@ -22,6 +24,8 @@ app.use('/auth', authRoutes);
 app.use('/products', productRoutes);
 app.use('/cart', cartRoutes);
 app.use('/orders', orderRoutes);
+app.use('/stores', storeRoutes);
+app.use('/checkout', checkoutRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -13,6 +13,9 @@ interface AuthContextType {
     isLoggedIn: boolean;
     login: (userData: User, token?: string) => void;
     logout: () => void;
+    isLoginModalOpen: boolean;
+    openLoginModal: () => void;
+    closeLoginModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
     // Load user from localStorage on init
     useEffect(() => {
@@ -37,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (token) {
             localStorage.setItem('token', token);
         }
+        setIsLoginModalOpen(false);
     };
 
     const logout = () => {
@@ -46,8 +51,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('token');
     };
 
+    const openLoginModal = () => setIsLoginModalOpen(true);
+    const closeLoginModal = () => setIsLoginModalOpen(false);
+
     return (
-        <AuthContext.Provider value={{ user, isLoggedIn, login, logout }}>
+        <AuthContext.Provider value={{
+            user,
+            isLoggedIn,
+            login,
+            logout,
+            isLoginModalOpen,
+            openLoginModal,
+            closeLoginModal
+        }}>
             {children}
         </AuthContext.Provider>
     );

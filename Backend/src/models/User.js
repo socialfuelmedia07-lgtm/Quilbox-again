@@ -30,6 +30,13 @@ const userSchema = new mongoose.Schema(
             enum: ['user', 'admin'],
             default: 'user',
         },
+        savedAddress: {
+            type: String,
+        },
+        savedLocation: {
+            lat: Number,
+            lng: Number
+        }
     },
     {
         timestamps: true,

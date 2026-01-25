@@ -14,6 +14,9 @@ import CheckoutPage from "./pages/CheckoutPage";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 
+import Partners from "./pages/Partners";
+import StorePage from "./pages/StorePage";
+
 import ScrollToTopOnNavigation from "./components/ScrollToTopOnNavigation";
 
 const queryClient = new QueryClient();
@@ -33,6 +36,8 @@ const App = () => (
               <Route path="/category/:slug" element={<CategoryPage />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/partners" element={<Partners />} />
+              <Route path="/partners/:storeId" element={<StorePage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

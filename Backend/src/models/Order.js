@@ -7,6 +7,11 @@ const orderSchema = new mongoose.Schema(
             ref: 'User',
             required: true,
         },
+        store: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Store',
+            required: true,
+        },
         items: [
             {
                 product: {
@@ -33,6 +38,10 @@ const orderSchema = new mongoose.Schema(
             enum: ['order_placed', 'packed', 'on_the_way', 'refunded'],
             default: 'order_placed',
         },
+        shippingAddress: {
+            type: String,
+            required: true
+        }
     },
     {
         timestamps: true,

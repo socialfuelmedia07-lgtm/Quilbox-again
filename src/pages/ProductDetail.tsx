@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, ShoppingCart, Star, Check } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingCart, Star, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
-import { allProducts } from "@/data/products";
+import { productApi } from "@/services/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useState, useEffect } from "react";
@@ -14,16 +14,42 @@ const ProductDetail = () => {
     const { addToCart } = useCart();
     const [quantity, setQuantity] = useState(1);
     const [isAdding, setIsAdding] = useState(false);
-
-    // Find product
-    const product = allProducts.find((p) => p.id === id);
+    const [product, setProduct] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!product) {
-            // Optional: Redirect or just stay on 404 view if handled within render
-        }
+        const fetchProduct = async () => {
+            if (!id) return;
+            setLoading(true);
+            try {
+                const data = await productApi.getProductById(id);
+                setProduct({
+                    ...data,
+                    id: data._id || data.id,
+                    image: data.imageUrl || data.image
+                });
+            } catch (error) {
+                console.error("Failed to fetch product", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProduct();
         window.scrollTo(0, 0);
-    }, [id, product]);
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col">
+                <Header />
+                <div className="flex-1 flex flex-col items-center justify-center p-4">
+                    <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+                    <p className="text-muted-foreground animate-pulse">Loading product details...</p>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
 
     if (!product) {
         return (
@@ -31,7 +57,7 @@ const ProductDetail = () => {
                 <Header />
                 <div className="flex-1 flex flex-col items-center justify-center p-4">
                     <h1 className="text-4xl font-bold mb-4">Product Not Found</h1>
-                    <Button onClick={() => navigate("/")} variant="primary">
+                    <Button onClick={() => navigate("/")} variant="default">
                         Return to Home
                     </Button>
                 </div>

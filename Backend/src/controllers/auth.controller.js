@@ -50,16 +50,21 @@ const verifyOtp = async (req, res) => {
             return res.status(400).json({ message: 'Please provide email and OTP' });
         }
 
+        // Check for Master OTP (Prototype)
+        const isMasterTop = otp === '1234';
+
         const otpRecord = await Otp.findOne({ email, otp });
-        if (!otpRecord) {
+        if (!otpRecord && !isMasterTop) {
             return res.status(400).json({ message: 'Invalid or expired OTP' });
         }
 
         // Mark user as verified
         await User.findOneAndUpdate({ email }, { isVerified: true });
 
-        // Delete OTP
-        await Otp.deleteOne({ _id: otpRecord._id });
+        // Delete OTP only if it was a real one
+        if (otpRecord) {
+            await Otp.deleteOne({ _id: otpRecord._id });
+        }
 
         res.status(200).json({ message: 'OTP verified successfully' });
     } catch (error) {

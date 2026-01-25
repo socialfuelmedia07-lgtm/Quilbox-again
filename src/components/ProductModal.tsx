@@ -11,9 +11,10 @@ interface ProductModalProps {
     trigger: React.ReactNode;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    storeId?: string;
 }
 
-const ProductModal = ({ product, trigger, open, onOpenChange }: ProductModalProps) => {
+const ProductModal = ({ product, trigger, open, onOpenChange, storeId }: ProductModalProps) => {
     const [quantity, setQuantity] = useState(0);
     const { addToCart } = useCart();
 
@@ -25,9 +26,7 @@ const ProductModal = ({ product, trigger, open, onOpenChange }: ProductModalProp
     }, [open]);
 
     const handleAddToCart = () => {
-        for (let i = 0; i < quantity; i++) {
-            addToCart(product);
-        }
+        addToCart(product, storeId, quantity);
         onOpenChange(false);
     };
 

@@ -22,6 +22,7 @@ interface ProductCardProps {
   brand?: string;
   rating?: number;
   popularity?: number;
+  storeId?: string;
 }
 
 const ProductCard = (props: ProductCardProps) => {
@@ -34,7 +35,14 @@ const ProductCard = (props: ProductCardProps) => {
     packSize,
     discount,
     delay = 0,
+    ...rest
   } = props;
+
+  // Robust field mapping for fallback
+  const SAMPLE_IMAGE = "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=500&auto=format&fit=crop&q=60";
+  const finalImage = image || (rest as any).imageUrl || SAMPLE_IMAGE;
+  const finalOriginalPrice = Number(originalPrice || (rest as any).price || 0);
+  const finalDiscountedPrice = Number(discountedPrice || (rest as any).price || 0);
 
   const [isAdding, setIsAdding] = useState(false);
   const [open, setOpen] = useState(false);
@@ -54,18 +62,18 @@ const ProductCard = (props: ProductCardProps) => {
     const productToAdd: Product = {
       id,
       name,
-      image,
-      originalPrice,
-      discountedPrice,
+      image: finalImage,
+      originalPrice: finalOriginalPrice,
+      discountedPrice: finalDiscountedPrice,
       packSize,
       discount,
-      category: (props.category as any) || "Other", // Safe cast or default
-      brand: props.brand || "Generic",
-      rating: props.rating || 0,
-      popularity: props.popularity || 0,
+      category: (rest as any).category || "Other", // Safe cast or default
+      brand: (rest as any).brand || "Generic",
+      rating: (rest as any).rating || 0,
+      popularity: (rest as any).popularity || 0,
     };
 
-    addToCart(productToAdd);
+    addToCart(productToAdd, props.storeId);
 
     setTimeout(() => {
       setIsAdding(false);
@@ -105,10 +113,13 @@ const ProductCard = (props: ProductCardProps) => {
           )}
         >
           <img
-            src={image}
+            src={finalImage}
             alt={name}
             className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = SAMPLE_IMAGE;
+            }}
           />
         </div>
 
@@ -133,13 +144,13 @@ const ProductCard = (props: ProductCardProps) => {
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
               <span className="text-xs text-slate-400 dark:text-slate-500 line-through decoration-1">
-                ₹{originalPrice}
+                ₹{finalOriginalPrice}
               </span>
               <span className={cn(
                 "text-lg font-bold transition-colors duration-300",
                 "text-slate-900 dark:text-white"
               )}>
-                ₹{discountedPrice}
+                ₹{finalDiscountedPrice}
               </span>
             </div>
 
@@ -186,19 +197,20 @@ const ProductCard = (props: ProductCardProps) => {
         product={{
           id,
           name,
-          image,
-          originalPrice,
-          discountedPrice,
+          image: finalImage,
+          originalPrice: finalOriginalPrice,
+          discountedPrice: finalDiscountedPrice,
           packSize,
           discount,
-          category: (props.category as any) || "Other",
-          brand: props.brand || "Generic",
-          rating: props.rating || 0,
-          popularity: props.popularity || 0,
+          category: (rest as any).category || "Other",
+          brand: (rest as any).brand || "Generic",
+          rating: (rest as any).rating || 0,
+          popularity: (rest as any).popularity || 0,
         }}
         open={open}
         onOpenChange={setOpen}
-        trigger={null} // Trigger is handled by the parent div click
+        trigger={null}
+        storeId={props.storeId}
       />
     </>
   );
