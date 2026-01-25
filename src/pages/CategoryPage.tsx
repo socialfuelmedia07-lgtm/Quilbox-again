@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Filter, ChevronDown, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import ProductCard from "@/components/ProductCard";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FloatingCartBar from "@/components/cart/FloatingCartBar";
-import { allProducts, Product } from "@/data/products";
+import { productApi } from "@/services/api";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
     DropdownMenu,
@@ -23,20 +23,48 @@ const CategoryPage = () => {
     const categoryName = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : "";
 
     // State
+    const [allBackendProducts, setAllBackendProducts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState([0, 2000]);
     const [sortBy, setSortBy] = useState<"popularity" | "price-asc" | "price-desc">("popularity");
 
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const data = await productApi.getProducts();
+                const mappedProducts = data.map((p: any) => ({
+                    id: p._id,
+                    name: p.name,
+                    image: p.imageUrl,
+                    originalPrice: p.price + 50,
+                    discountedPrice: p.price,
+                    discount: 15,
+                    category: "Writing", // Default or map if backend has categories
+                    brand: "Quilbox",
+                    popularity: 80,
+                    rating: 4.5
+                }));
+                setAllBackendProducts(mappedProducts);
+            } catch (error) {
+                console.error("Failed to fetch products:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
+
     // Derive unique brands
     const brands = useMemo(() => {
-        return Array.from(new Set(allProducts.map((p) => p.brand)));
-    }, []);
+        return Array.from(new Set(allBackendProducts.map((p) => p.brand)));
+    }, [allBackendProducts]);
 
     // Filter & Sort Logic
     const filteredProducts = useMemo(() => {
-        let result = allProducts.filter((p) => {
-            // Category Filter (Case insensitive check)
-            if (slug && p.category.toLowerCase() !== slug.toLowerCase()) return false;
+        let result = allBackendProducts.filter((p) => {
+            // Category Filter - for now we just show all since seeding is simple
+            // if (slug && p.category.toLowerCase() !== slug.toLowerCase()) return false;
 
             // Brand Filter
             if (selectedBrands.length > 0 && !selectedBrands.includes(p.brand)) return false;
@@ -66,6 +94,14 @@ const CategoryPage = () => {
             prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
         );
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background">
