@@ -18,7 +18,39 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-import { MOCK_PRODUCTS, MOCK_STORES } from '@/data/mockData';
+// Handle 401 Unauthorized globally
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            console.error("Session expired or invalid token. Logging out...");
+            localStorage.removeItem('token');
+            localStorage.removeItem('quilbox_user');
+            // We can't call logout() from AuthContext here easily, 
+            // but clearing storage will make useAuth redirect/react on next check or reload.
+            window.location.href = '/'; // Force a landing page redirect to reset state
+        }
+        return Promise.reject(error);
+    }
+);
+
+import { allProducts } from '@/data/products';
+
+const MOCK_PRODUCTS = allProducts.map(p => ({
+    ...p,
+    _id: p.id, // Ensure support for both id mapping formats
+    storeId: "" // Added to satisfy TypeScript and allow filtering
+}));
+
+const MOCK_STORES = [
+    {
+        _id: "6979b4daec521849354e5a70",
+        name: "Quilbox Stationery Hub",
+        address: "Sector 62, Noida",
+        rating: 4.8,
+        image: "https://images.unsplash.com/photo-1583000492611-6b83f0980540"
+    }
+];
 
 // --- Auth APIs ---
 export const authApi = {
@@ -75,36 +107,102 @@ export const productApi = {
     },
 };
 
+// --- Cart States for Mock Fallbacks (Persistent) ---
+const getMockCart = () => {
+    try {
+        const saved = localStorage.getItem('quilbox_mock_cart');
+        return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+};
+
+const saveMockCart = (cart: any[]) => {
+    localStorage.setItem('quilbox_mock_cart', JSON.stringify(cart));
+};
+
+let MOCK_CART = getMockCart();
+
 // --- Cart APIs ---
 export const cartApi = {
     getCart: async () => {
         try {
             const response = await api.get('/cart');
             return response.data;
-        } catch (e) { return { items: [], total: 0 }; }
+        } catch (e) {
+            return { items: MOCK_CART, total: 0 };
+        }
     },
     addToCart: async (productId: string, quantity: number, storeId?: string) => {
         try {
             const response = await api.post('/cart', { productId, quantity, storeId });
             return response.data;
         } catch (e) {
-            console.warn("API Fail - AddToCart", e);
-            return { message: "Added to cart (Mock)" };
+            console.warn("API Fail - AddToCart: Using Mock", e);
+
+            const existingIndex = MOCK_CART.findIndex(item =>
+                (item.product._id === productId || item.product.id === productId)
+            );
+
+            if (existingIndex > -1) {
+                MOCK_CART[existingIndex].quantity += quantity;
+            } else {
+                // Find product in all possible mock sources
+                const product = MOCK_PRODUCTS.find(p => p._id === productId) ||
+                    MOCK_PRODUCTS.find(p => (p as any).id === productId) ||
+                    MOCK_PRODUCTS[0];
+
+                MOCK_CART.push({
+                    product,
+                    quantity,
+                    price: product.discountedPrice || product.originalPrice || (product as any).price || 0
+                });
+            }
+
+            saveMockCart(MOCK_CART);
+            return { items: [...MOCK_CART] };
         }
     },
     updateCartItem: async (productId: string, quantity: number) => {
-        const response = await api.patch(`/cart/${productId}`, { quantity });
-        return response.data;
+        try {
+            const response = await api.patch(`/cart/${productId}`, { quantity });
+            return response.data;
+        } catch (e) {
+            const index = MOCK_CART.findIndex(item =>
+                (item.product._id === productId || item.product.id === productId)
+            );
+            if (index > -1) {
+                if (quantity < 1) {
+                    MOCK_CART.splice(index, 1);
+                } else {
+                    MOCK_CART[index].quantity = quantity;
+                }
+            }
+            saveMockCart(MOCK_CART);
+            return { items: [...MOCK_CART] };
+        }
     },
     removeCartItem: async (productId: string) => {
-        const response = await api.delete(`/cart/${productId}`);
-        return response.data;
+        try {
+            const response = await api.delete(`/cart/${productId}`);
+            return response.data;
+        } catch (e) {
+            MOCK_CART = MOCK_CART.filter(item =>
+                item.product._id !== productId && item.product.id !== productId
+            );
+            saveMockCart(MOCK_CART);
+            return { items: [...MOCK_CART] };
+        }
     },
     clearCart: async () => {
         try {
-            const response = await api.delete('/cart');
-            return response.data;
-        } catch (e) { return {}; }
+            await api.delete('/cart');
+            MOCK_CART = [];
+            saveMockCart(MOCK_CART);
+            return { items: [] };
+        } catch (e) {
+            MOCK_CART = [];
+            saveMockCart(MOCK_CART);
+            return { items: [] };
+        }
     }
 };
 
@@ -167,19 +265,41 @@ export const storeApi = {
         }
     },
     getStoreById: async (id: string) => {
-        const response = await api.get(`/stores/${id}`);
-        return response.data;
+        try {
+            const response = await api.get(`/stores/${id}`);
+            return response.data;
+        } catch (e) {
+            console.warn("API Fail - getStoreById: Using Mock Store", e);
+            return MOCK_STORES.find(s => s._id === id) || MOCK_STORES[0];
+        }
     },
     getStoreCategories: async (id: string) => {
         const response = await api.get(`/stores/${id}/categories`);
         return response.data;
     },
-    getStoreProducts: async (id: string, search?: string) => {
+    getStoreProducts: async (storeId: string, options: { search?: string, category?: string, brands?: string[], sort?: string } = {}) => {
         try {
-            const response = await api.get(`/stores/${id}/products`, { params: { search } });
+            const params = new URLSearchParams();
+            if (options.search) params.append('search', options.search);
+            if (options.category) params.append('category', options.category);
+            if (options.brands && options.brands.length > 0) params.append('brands', options.brands.join(','));
+            if (options.sort) params.append('sort', options.sort);
+
+            const response = await api.get(`/stores/${storeId}/products?${params.toString()}`);
             return response.data;
         } catch (e) {
-            return MOCK_PRODUCTS;
+            console.warn("API Fail - getStoreProducts: Using Mock Data", e);
+            // Return structured mock response expected by StorePage
+            const storeProducts = MOCK_PRODUCTS.filter(p => p.storeId === storeId || !p.storeId);
+            return {
+                featured: storeProducts.slice(0, 4),
+                categories: [
+                    {
+                        categoryName: "All Products",
+                        products: storeProducts
+                    }
+                ]
+            };
         }
     },
 };

@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Search, ShoppingCart, User, Menu, X, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/context/AuthContext";
 import BrandLogo from "./BrandLogo";
 import ThemeToggle from "./ThemeToggle";

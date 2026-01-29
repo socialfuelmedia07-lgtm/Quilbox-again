@@ -5,7 +5,7 @@ import { ArrowLeft, MapPin, CreditCard, CheckCircle2, ShoppingBag, Truck, Store 
 // Lazy load map to avoid SSR issues or heavy initial load
 const MapPicker = lazy(() => import("@/components/MapPicker"));
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -368,7 +368,7 @@ const CheckoutPage = () => {
                                                                 setShowSuggestions(true);
                                                             }}
                                                             onFocus={() => setShowSuggestions(true)}
-                                                            className="w-full h-full bg-transparent p-4 text-sm outline-none placeholder:text-slate-400"
+                                                            className="w-full h-full bg-transparent p-4 text-sm outline-none placeholder:text-slate-400 text-slate-900 font-bold"
                                                             placeholder="Type address (e.g. Deshna Apt, Naranpura...)"
                                                         />
                                                         {isSearching && <Loader2 className="w-4 h-4 mr-3 animate-spin text-primary" />}

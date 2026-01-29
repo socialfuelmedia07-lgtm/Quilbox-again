@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, ShieldCheck, Zap, X, ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Product } from "@/data/products";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/hooks/use-cart";
 import { cn } from "@/lib/utils";
 
 interface ProductModalProps {
@@ -15,18 +15,24 @@ interface ProductModalProps {
 }
 
 const ProductModal = ({ product, trigger, open, onOpenChange, storeId }: ProductModalProps) => {
-    const [quantity, setQuantity] = useState(0);
-    const { addToCart } = useCart();
+    const { cart, addToCart, updateQuantity } = useCart();
 
-    // Reset quantity to 0 when modal opens
+    const cartItem = cart.find(item => item.id === product.id);
+    const [quantity, setQuantity] = useState(0);
+
+    // Sync local quantity with cart when modal opens
     useEffect(() => {
         if (open) {
-            setQuantity(0);
+            setQuantity(cartItem?.quantity || 1);
         }
-    }, [open]);
+    }, [open, cartItem]);
 
     const handleAddToCart = () => {
-        addToCart(product, storeId, quantity);
+        if (cartItem) {
+            updateQuantity(product.id, quantity);
+        } else {
+            addToCart(product, storeId, quantity);
+        }
         onOpenChange(false);
     };
 
@@ -121,31 +127,30 @@ const ProductModal = ({ product, trigger, open, onOpenChange, storeId }: Product
 
                         {/* Footer Actions */}
                         <div className="mt-auto flex items-center gap-3 md:gap-4 sticky bottom-0 bg-white dark:bg-slate-900 pt-2 pb-2 md:static md:p-0">
-                            {/* Quantity Control */}
-                            <div className="flex items-center justify-between border border-slate-200 dark:border-slate-700 rounded-lg h-12 px-4 w-32 md:w-40 hover:border-slate-300 dark:hover:border-slate-600 transition-colors shrink-0">
-                                <button
-                                    onClick={() => setQuantity(Math.max(0, quantity - 1))}
-                                    className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                            {cartItem ? (
+                                <div className="flex-1 h-12 flex items-center justify-between bg-[#ff3366] text-white rounded-xl px-6 shadow-lg shadow-pink-500/20">
+                                    <button
+                                        onClick={() => updateQuantity(product.id, (cartItem.quantity || 1) - 1)}
+                                        className="p-2 hover:bg-white/20 rounded-full transition-colors flex items-center justify-center"
+                                    >
+                                        <Minus className="w-6 h-6" strokeWidth={3} />
+                                    </button>
+                                    <span className="text-2xl font-black min-w-[40px] text-center">{cartItem.quantity}</span>
+                                    <button
+                                        onClick={() => updateQuantity(product.id, (cartItem.quantity || 1) + 1)}
+                                        className="p-2 hover:bg-white/20 rounded-full transition-colors flex items-center justify-center"
+                                    >
+                                        <Plus className="w-6 h-6" strokeWidth={3} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <Button
+                                    className="flex-1 h-12 text-white text-lg font-black rounded-xl bg-[#ff3366] hover:bg-[#ff3366]/90 shadow-lg shadow-pink-500/20 transition-all active:scale-[0.98]"
+                                    onClick={() => addToCart(product, storeId, quantity || 1)}
                                 >
-                                    <Minus className="w-4 h-4" />
-                                </button>
-                                <span className="text-lg font-bold text-slate-900 dark:text-white">{quantity}</span>
-                                <button
-                                    onClick={() => setQuantity(quantity + 1)}
-                                    className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                </button>
-                            </div>
-
-                            {/* Add Button */}
-                            <Button
-                                className="flex-1 h-12 text-white text-base font-bold rounded-lg bg-[#ff3366] hover:bg-[#ff3366]/90 shadow-md shadow-pink-500/20"
-                                onClick={handleAddToCart}
-                                disabled={quantity === 0}
-                            >
-                                Add to Cart
-                            </Button>
+                                    ADD TO CART
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>

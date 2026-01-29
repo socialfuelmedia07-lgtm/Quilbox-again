@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import CategoryPage from "./pages/CategoryPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import ProductDetail from "./pages/ProductDetail";
 
 import SearchPage from "./pages/SearchPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -34,7 +33,6 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/category/:slug" element={<CategoryPage />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/partners" element={<Partners />} />
               <Route path="/partners/:storeId" element={<StorePage />} />

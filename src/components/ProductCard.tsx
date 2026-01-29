@@ -3,7 +3,7 @@ import { Plus, Minus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/hooks/use-cart";
 import { Product } from "@/data/products";
 import { Link } from "react-router-dom";
 import ProductModal from "./ProductModal";
@@ -155,19 +155,19 @@ const ProductCard = (props: ProductCardProps) => {
             </div>
 
             {quantity > 0 ? (
-              <div className="flex items-center gap-2 bg-[#ff3366] text-white rounded-lg h-8 px-2 shadow-sm">
+              <div className="flex items-center justify-between bg-[#ff3366] text-white rounded-lg h-8 px-1 shadow-md w-[80px]">
                 <button
                   onClick={(e) => handleUpdateQuantity(e, quantity - 1)}
-                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  className="p-1 hover:bg-white/20 rounded-md transition-colors flex items-center justify-center"
                 >
-                  <Minus className="w-3 h-3" />
+                  <Minus className="w-4 h-4" strokeWidth={3} />
                 </button>
-                <span className="text-xs font-bold min-w-[12px] text-center">{quantity}</span>
+                <span className="text-sm font-extrabold min-w-[20px] text-center">{quantity}</span>
                 <button
                   onClick={(e) => handleUpdateQuantity(e, quantity + 1)}
-                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  className="p-1 hover:bg-white/20 rounded-md transition-colors flex items-center justify-center"
                 >
-                  <Plus className="w-3 h-3" />
+                  <Plus className="w-4 h-4" strokeWidth={3} />
                 </button>
               </div>
             ) : (
@@ -175,10 +175,10 @@ const ProductCard = (props: ProductCardProps) => {
                 variant="default"
                 size="sm"
                 className={cn(
-                  "h-8 px-4 rounded-lg border transition-all duration-300",
+                  "h-8 px-6 rounded-lg border-2 transition-all duration-300",
                   "bg-white border-[#ff3366] text-[#ff3366] hover:bg-[#ff3366] hover:text-white",
                   "dark:bg-transparent dark:border-[#ff3366] dark:text-[#ff3366] dark:hover:bg-[#ff3366] dark:hover:text-white",
-                  "font-bold tracking-wide text-xs",
+                  "font-black tracking-tighter text-xs",
                   isAdding && "scale-95 opacity-80"
                 )}
                 onClick={(e) => {

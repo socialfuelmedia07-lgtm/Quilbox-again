@@ -36,26 +36,45 @@ exports.getStoreCategories = async (req, res) => {
 exports.getStoreProducts = async (req, res) => {
     try {
         const { storeId } = req.params;
-        const { search } = req.query;
+        const { search, category, brands, sort } = req.query;
 
         // Base query for store products
         let query = { store: storeId };
 
-        if (search) {
-            // Find products matching search string
-            const matchedProducts = await Product.find({
-                name: { $regex: search, $options: 'i' }
-            });
-            const productIds = matchedProducts.map(p => p._id);
-            query.product = { $in: productIds };
+        // 1. Filter by Category Name if provided
+        if (category) {
+            const storeCat = await StoreCategory.findOne({ store: storeId, name: category });
+            if (storeCat) {
+                query.category = storeCat._id;
+            } else if (category === "Best Seller") {
+                query.isFeatured = true;
+            }
         }
 
-        const storeProducts = await StoreProduct.find(query)
+        // 2. Filter by Product fields (Search & Brands)
+        let productQuery = { isActive: true };
+        if (search) {
+            productQuery.name = { $regex: search, $options: 'i' };
+        }
+        if (brands) {
+            // Support single brand string or array
+            const brandList = Array.isArray(brands) ? brands : brands.split(',');
+            productQuery.brand = { $in: brandList };
+        }
+
+        // Find products matching product-level criteria
+        const matchedProducts = await Product.find(productQuery);
+        const productIds = matchedProducts.map(p => p._id);
+        query.product = { $in: productIds };
+
+        // 3. Fetch Store Products with Category and Product info
+        let storeProducts = await StoreProduct.find(query)
             .populate('product')
             .populate('category');
 
-        const transformProduct = (p) => {
-            if (!p) return null;
+        const transformProduct = (sp) => {
+            if (!sp || !sp.product) return null;
+            const p = sp.product;
 
             const stationaryFallbacks = [
                 "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd",
@@ -66,35 +85,73 @@ exports.getStoreProducts = async (req, res) => {
                 "https://images.unsplash.com/photo-1502472944661-345386f6a73c",
                 "https://images.unsplash.com/photo-1591123120675-6f7f1aae0e5b"
             ];
-
             const fallbackImg = stationaryFallbacks[Math.floor(Math.random() * stationaryFallbacks.length)] + "?w=500&auto=format&fit=crop&q=60";
 
-            const price = Number(p.price) || 0;
-            const hasDiscount = Math.random() > 0.5; // Simulate discount for variety if not in DB
-            const originalPrice = hasDiscount ? Math.floor(price * 1.3) : price;
+            // Price Logic: Preference to StoreProduct specific price/discount if added later
+            const originalPrice = Number(sp.price || p.price) || 0;
+            const discountPercent = Number(sp.discount || p.discount) || 0;
+            const discountedPrice = discountPercent > 0
+                ? Math.floor(originalPrice * (1 - discountPercent / 100))
+                : originalPrice;
 
             return {
                 id: p._id,
                 name: p.name,
                 image: p.imageUrl || fallbackImg,
-                originalPrice: originalPrice,
-                discountedPrice: price,
+                originalPrice,
+                discountedPrice,
+                discount: discountPercent,
+                brand: p.brand || 'Generic',
+                popularity: Number(p.popularity) || 0,
                 packSize: p.description && p.description.length > 5 ? p.description.substring(0, 15) : 'Single',
-                category: p.category?.name || 'Stationary'
+                category: sp.category?.name || 'Stationary'
             };
         };
 
-        const featured = storeProducts
-            .filter(sp => sp.isFeatured)
-            .map(sp => transformProduct(sp.product));
+        let transformedList = storeProducts
+            .map(sp => transformProduct(sp))
+            .filter(p => p !== null);
 
+        // 4. Server-side Sorting
+        if (sort) {
+            switch (sort) {
+                case "price-low":
+                    transformedList.sort((a, b) => a.discountedPrice - b.discountedPrice);
+                    break;
+                case "price-high":
+                    transformedList.sort((a, b) => b.discountedPrice - a.discountedPrice);
+                    break;
+                case "popularity":
+                    transformedList.sort((a, b) => b.popularity - a.popularity);
+                    break;
+                default:
+                    // default order from DB
+                    break;
+            }
+        }
+
+        // 5. Response Formatting
+        // If it's a specific query (search, category, etc.), return a flat list
+        // If it's the main store page view (no filters), return categorized
+        if (search || category || brands || sort) {
+            return res.status(200).json({
+                featured: [],
+                categories: [{
+                    categoryName: category || "Search Results",
+                    products: transformedList
+                }]
+            });
+        }
+
+        // Categorized View (Main Store Page)
+        const featured = transformedList.filter((p, idx) => storeProducts[idx].isFeatured);
         const categoriesMap = {};
-        storeProducts.forEach(sp => {
-            const catName = sp.category.name;
+        transformedList.forEach((p) => {
+            const catName = p.category;
             if (!categoriesMap[catName]) {
                 categoriesMap[catName] = [];
             }
-            categoriesMap[catName].push(transformProduct(sp.product));
+            categoriesMap[catName].push(p);
         });
 
         const categories = Object.keys(categoriesMap).map(name => ({

@@ -101,7 +101,7 @@ const Index = () => {
 
         <ProductSection
           title="Art Supplies"
-          products={getByCategory("Art")}
+          products={getByCategory("Art Supplies")}
           viewAllHref="/category/art"
           limit={10}
         />

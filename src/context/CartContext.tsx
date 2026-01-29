@@ -1,75 +1,58 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Product } from "@/data/products";
+import { CartItem } from "@/types/cart";
 import { cartApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
-import StoreMismatchModal from "@/components/cart/StoreMismatchModal";
 import { useAuth } from "./AuthContext";
-
-export interface CartItem extends Product {
-    quantity: number;
-}
-
-export interface CartItem extends Product {
-    quantity: number;
-}
-
-interface CartContextType {
-    cart: CartItem[];
-    isCartOpen: boolean;
-    addToCart: (product: Product, storeId?: string, quantity?: number) => Promise<void>;
-    removeFromCart: (productId: string) => Promise<void>;
-    updateQuantity: (productId: string, quantity: number) => Promise<void>;
-    clearCart: () => Promise<void>;
-    toggleCart: (isOpen?: boolean) => void;
-    cartTotal: number;
-    cartCount: number;
-    conflictStoreId: string | null;
-    setConflictStoreId: (id: string | null) => void;
-    pendingProduct: Product | null;
-    setPendingProduct: (p: Product | null) => void;
-}
-
-const CartContext = createContext<CartContextType | undefined>(undefined);
+import { CartContext } from "./CartContextBase";
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [conflictStoreId, setConflictStoreId] = useState<string | null>(null);
+    const [pendingProduct, setPendingProduct] = useState<Product | null>(null);
     const { toast } = useToast();
 
     const { isLoggedIn, openLoginModal } = useAuth();
-    const [pendingProduct, setPendingProduct] = useState<{ product: Product, quantity: number } | null>(null);
+    const [authPendingProduct, setAuthPendingProduct] = useState<{ product: Product, quantity: number } | null>(null);
+
+    // Track latest request per product to prevent UI jitters
+    const lastRequestTime = useRef<Record<string, number>>({});
 
     const fetchCart = async () => {
         if (!isLoggedIn) return;
         try {
             const data = await cartApi.getCart();
             if (data && data.items) {
-                const transformed = data.items.map((item: any) => ({
-                    ...item.product,
-                    id: item.product._id || item.product.id,
-                    quantity: item.quantity,
-                    discountedPrice: item.price
-                }));
-                setCart(transformed);
+                setCart(transformCartItems(data.items));
             }
         } catch (e) {
             console.error("Failed to fetch cart", e);
         }
     };
 
+    const transformCartItems = (items: any[]): CartItem[] => {
+        return items.map((item: any) => {
+            const product = item.product || {};
+            return {
+                ...product,
+                id: product._id || product.id || "",
+                name: product.name || "Unknown Product",
+                image: product.imageUrl || product.image || "",
+                quantity: item.quantity || 0,
+                originalPrice: Number(product.price || product.originalPrice || item.price || 0),
+                discountedPrice: Number(item.price || product.discountPrice || product.discountedPrice || product.price || 0)
+            };
+        });
+    };
+
     useEffect(() => {
         if (isLoggedIn) {
             fetchCart();
-            // Process pending product if exists
-            if (pendingProduct) {
-                // Use a clean function to add without triggering new context updates immediately
+            if (authPendingProduct) {
                 (async () => {
-                    await addToCart(pendingProduct.product, undefined, pendingProduct.quantity);
-                    setPendingProduct(null);
-                    toast({
-                        title: "Item Added",
-                        description: `${pendingProduct.product.name} has been added to your cart.`,
-                    });
+                    await addToCart(authPendingProduct.product, undefined, authPendingProduct.quantity);
+                    setAuthPendingProduct(null);
                 })();
             }
         } else {
@@ -79,7 +62,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
     const addToCart = async (product: Product, storeId?: string, quantity: number = 1) => {
         if (!isLoggedIn) {
-            setPendingProduct({ product, quantity });
+            setAuthPendingProduct({ product, quantity });
             openLoginModal();
             toast({
                 title: "Login Required",
@@ -88,41 +71,45 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
             return;
         }
 
+        // --- Store Mismatch Check ---
+        const firstItem = cart[0];
+        if (firstItem && storeId && (firstItem as any).storeId && (firstItem as any).storeId !== storeId) {
+            setConflictStoreId(storeId);
+            setPendingProduct(product);
+            return;
+        }
+
+        // --- Optimistic Update ---
+        const prevCart = [...cart];
+        const existingItem = cart.find(item => item.id === product.id);
+
+        if (existingItem) {
+            setCart(cart.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item));
+        } else {
+            setCart([...cart, { ...product, quantity }]);
+        }
+
         try {
-            const data = await cartApi.addToCart(product.id, quantity);
-            const transformed = data.items.map((item: any) => ({
-                ...item.product,
-                id: item.product._id || item.product.id,
-                quantity: item.quantity,
-                discountedPrice: item.price
-            }));
-            setCart(transformed);
-            if (!pendingProduct) { // Only show toast if it wasn't a pending auto-add
-                toast({
-                    title: "Added to Cart",
-                    description: `${product.name} added.`,
-                });
+            await cartApi.addToCart(product.id, quantity);
+            await fetchCart(); // Refresh from server truth
+            if (!authPendingProduct) {
+                toast({ title: "Updated Cart", description: `${product.name} quantity updated.` });
             }
         } catch (error: any) {
-            toast({
-                title: "Error",
-                description: error.response?.data?.message || "Failed to add to cart",
-                variant: "destructive",
-            });
+            setCart(prevCart); // Rollback on error
+            console.error("Failed to add to cart", error);
         }
     };
 
     const removeFromCart = async (productId: string) => {
+        const prevCart = [...cart];
+        setCart(cart.filter(item => item.id !== productId));
+
         try {
-            const data = await cartApi.removeCartItem(productId);
-            const transformed = data.items.map((item: any) => ({
-                ...item.product,
-                id: item.product._id || item.product.id,
-                quantity: item.quantity,
-                discountedPrice: item.price
-            }));
-            setCart(transformed);
+            await cartApi.removeCartItem(productId);
+            await fetchCart(); // Refresh from server truth
         } catch (e) {
+            setCart(prevCart); // Rollback
             console.error("Failed to remove item", e);
         }
     };
@@ -132,25 +119,27 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
             await removeFromCart(productId);
             return;
         }
+
+        const prevCart = [...cart];
+        setCart(cart.map(item => item.id === productId ? { ...item, quantity } : item));
+
         try {
-            const data = await cartApi.updateCartItem(productId, quantity);
-            const transformed = data.items.map((item: any) => ({
-                ...item.product,
-                id: item.product._id || item.product.id,
-                quantity: item.quantity,
-                discountedPrice: item.price
-            }));
-            setCart(transformed);
+            await cartApi.updateCartItem(productId, quantity);
+            await fetchCart(); // Refresh from server truth
         } catch (e) {
+            setCart(prevCart); // Rollback
             console.error("Failed to update quantity", e);
         }
     };
 
     const clearCart = async () => {
+        const prevCart = [...cart];
+        setCart([]);
+
         try {
             await cartApi.clearCart();
-            setCart([]);
         } catch (e) {
+            setCart(prevCart); // Rollback
             console.error("Failed to clear cart", e);
         }
     };
@@ -178,21 +167,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                 toggleCart,
                 cartTotal,
                 cartCount,
-                conflictStoreId: null,
-                setConflictStoreId: () => { },
-                pendingProduct: null,
-                setPendingProduct: () => { }
+                conflictStoreId,
+                setConflictStoreId,
+                pendingProduct,
+                setPendingProduct
             }}
         >
             {children}
         </CartContext.Provider>
     );
-};
-
-export const useCart = () => {
-    const context = useContext(CartContext);
-    if (context === undefined) {
-        throw new Error("useCart must be used within a CartProvider");
-    }
-    return context;
 };

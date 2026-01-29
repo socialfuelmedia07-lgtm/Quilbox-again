@@ -11,13 +11,27 @@ const app = express();
 
 // Middleware
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || '*', // Set this to your Vercel URL in production
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl) or local dev origins
+        if (!origin || origin.startsWith('http://localhost') || origin.includes('127.0.0.1')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 };
+
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// Simple request logger
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+    next();
+});
 
 // Routes
 app.use('/auth', authRoutes);

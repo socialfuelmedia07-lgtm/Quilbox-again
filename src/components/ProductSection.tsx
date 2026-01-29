@@ -74,8 +74,8 @@ const ProductSection = ({
         </div>
 
         {/* Product List - SINGLE ROW ONLY */}
-        <div className="relative overflow-hidden">
-          <div className="flex overflow-x-auto pb-4 scrollbar-none gap-4 md:gap-6 snap-x snap-mandatory scroll-smooth">
+        <div className="relative">
+          <div className="flex overflow-x-auto pb-4 scrollbar-none gap-4 md:gap-6 snap-x snap-mandatory scroll-smooth p-1">
             {displayedProducts.map((product, index) => (
               <div
                 key={product.id || index}
@@ -88,6 +88,19 @@ const ProductSection = ({
                 />
               </div>
             ))}
+
+            {showViewAll && products.length > (limit || 0) && (
+              <div
+                onClick={() => navigate(viewAllHref)}
+                className="w-[180px] xs:w-[200px] sm:w-[220px] md:w-[240px] flex-shrink-0 snap-start flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group"
+              >
+                <div className="w-12 h-12 rounded-full bg-white dark:bg-black flex items-center justify-center shadow-sm mb-3 group-hover:scale-110 transition-transform">
+                  <ChevronRight className="w-6 h-6 text-[#ff3366]" />
+                </div>
+                <span className="font-bold text-sm text-[#ff3366]">View All</span>
+                <span className="text-[10px] text-slate-400 font-medium">+{products.length - (limit || products.length)} more items</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
